@@ -1,0 +1,2 @@
+rootProject.name = "YDDC_2"
+include ':app'
