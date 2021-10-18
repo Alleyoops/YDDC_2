@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.YDDC_2" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/design_default_color_secondary</item>
+        <item name="colorPrimary">@color/teal_200</item>
         <item name="colorPrimaryVariant">#F8F9FC</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->

@@ -10,12 +10,14 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yddc_2.adapter.ViewPagerAdapter;
 import com.example.yddc_2.navigation.find.SecondFragment;
 import com.example.yddc_2.navigation.me.ThirdFragment;
 import com.example.yddc_2.navigation.word.FirstFragment;
+import com.example.yddc_2.utils.GetRandomText;
 import com.example.yddc_2.utils.HideBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -37,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initBottomNavigationView(){
-        BottomSheetBehavior<View> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
-        BottomSheetBehavior<View> NavBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomNavigationView));
+        BottomSheetBehavior<LinearLayout> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
+        BottomSheetBehavior<BottomNavigationView> NavBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomNavigationView));
         List<Fragment> FragmentList = new ArrayList<>();
         ViewPager viewPager = (ViewPager)findViewById(R.id.view_pager);
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
@@ -99,37 +101,43 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull @NotNull View bottomSheet, int newState) {
                 //bottomSheet状态改变
                 switch (newState){
                     case BottomSheetBehavior.STATE_COLLAPSED:
-                        //收起状态
+                        viewPager.setVisibility(View.VISIBLE);
                         NavBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                         break;
-                    case BottomSheetBehavior.STATE_DRAGGING://多个case执行相同代码的写法
+                    case BottomSheetBehavior.STATE_SETTLING:
+                        //视图从脱离手指自由滑动到最终停下的这一小段时间
+                        break;
+                    //收起状态
+                    case BottomSheetBehavior.STATE_DRAGGING:
+                        //拖动时
+                        break;
                     case BottomSheetBehavior.STATE_EXPANDED:
                         //全部展开状态
-                        //拖动状态
+                        viewPager.setVisibility(View.GONE);
                         NavBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                         break;
                     case BottomSheetBehavior.STATE_HIDDEN:
                         //隐藏状态
                         //如果是find页面则不弹出，否则弹出
                         if(pos==1){
-                            //bottomSheetBehavior什么都不敢，保持状态,但是NavBehavior要升起来
+                            //bottomSheetBehavior什么都不做，保持状态,但是NavBehavior要升起来
                             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                         }else {
                             //恢复状态
                             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                         }
                         break;
-                    case BottomSheetBehavior.STATE_SETTLING:
-                        //固定状态
-                        break;
                     case BottomSheetBehavior.STATE_HALF_EXPANDED:
                         //半展开状态
+                        viewPager.setVisibility(View.VISIBLE);
+                        NavBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                         break;
                 }
             }
@@ -139,44 +147,5 @@ public class MainActivity extends AppCompatActivity {
                 //bottomSheet滑动拖拽改变slideOffset做动画
             }
         });
-        NavBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull @NotNull View bottomSheet, int newState) {
-                //bottomSheet状态改变
-                switch (newState){
-                    case BottomSheetBehavior.STATE_COLLAPSED:
-                        //收起状态
-                        if(bottomSheetBehavior.getState()==BottomSheetBehavior.STATE_EXPANDED){
-                            NavBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                        }
-                        break;
-                    case BottomSheetBehavior.STATE_DRAGGING:
-                        //拖动状态
-                        NavBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                        break;
-                    case BottomSheetBehavior.STATE_EXPANDED:
-                        //全部展开状态
-                        break;
-                    case BottomSheetBehavior.STATE_HIDDEN:
-                        //隐藏状态
-                        if(bottomSheetBehavior.getState()==BottomSheetBehavior.STATE_HIDDEN){
-                            NavBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                        }
-                        break;
-                    case BottomSheetBehavior.STATE_SETTLING:
-                        //固定状态
-                        break;
-                    case BottomSheetBehavior.STATE_HALF_EXPANDED:
-                        //半展开状态
-                        break;
-                }
-            }
-
-            @Override
-            public void onSlide(@NonNull @NotNull View bottomSheet, float slideOffset) {
-
-            }
-        });
     }
-
 }
