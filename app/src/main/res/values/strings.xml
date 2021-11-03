@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">YDDC_2</string>
+    <string name="pushstr2">完成日期：</string>
+    <string name="pushstr">建议您根据数据适当调整计划，开启提醒功能，让小悠帮助您养成良好习惯。</string>
 </resources>

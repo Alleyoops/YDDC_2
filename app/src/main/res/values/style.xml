@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="approval_detail_info_style1">
+
+        <item name="android:textColor">#666666</item>
+    </style>
+
+    <style name="approval_detail_info_style2">
+
+        <item name="android:textColor">#333333</item>
+    </style>
+
+</resources>

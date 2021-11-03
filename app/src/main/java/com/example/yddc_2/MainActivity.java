@@ -2,22 +2,19 @@ package com.example.yddc_2;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.ViewCompat;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.yddc_2.adapter.ViewPagerAdapter;
+import com.example.yddc_2.databinding.ActivityMainBinding;
 import com.example.yddc_2.navigation.find.SecondFragment;
 import com.example.yddc_2.navigation.me.ThirdFragment;
 import com.example.yddc_2.navigation.word.FirstFragment;
-import com.example.yddc_2.utils.GetRandomText;
 import com.example.yddc_2.utils.HideBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -29,11 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    int pos ;//记录哪一页
+    private int pos ;//记录哪一页
+    //private ActivityMainBinding mBinding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //mBinding = DataBindingUtil.setContentView(this,R.layout.activity_main);
         initBottomNavigationView();
         HideBar.hideBar(this);//暂时不理想
     }
@@ -59,17 +58,17 @@ public class MainActivity extends AppCompatActivity {
                 switch (item.getItemId()){
                     case R.id.word:
                         pos = 0;
-                        viewPager.setCurrentItem(0);
+                        viewPager.setCurrentItem(0,false);
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                         return true;
                     case R.id.find:
                         pos = 1;
-                        viewPager.setCurrentItem(1);
+                        viewPager.setCurrentItem(1,false);
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                         return true;
                     case R.id.me:
                         pos = 2;
-                        viewPager.setCurrentItem(2);
+                        viewPager.setCurrentItem(2,false);
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                         return true;
                     default:
