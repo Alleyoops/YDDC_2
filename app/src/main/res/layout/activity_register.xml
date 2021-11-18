@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
     </data>
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:background="@color/bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        tools:context=".RegisterActivity">
 
         <LinearLayout
             android:layout_marginHorizontal="20dp"
@@ -18,12 +21,17 @@
             android:paddingVertical="5dp"
             tools:ignore="UselessParent">
 
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="200dp"
+                android:layout_marginTop="40dp"
+                android:src="@drawable/img1"/>
 
             <EditText
                 android:id="@+id/et1"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:layout_marginTop="100dp"
+                android:layout_marginTop="40dp"
                 android:background="@drawable/shape_4"
                 android:hint="请输入手机号"
                 android:inputType="phone"
@@ -40,7 +48,7 @@
                 android:inputType="textPassword"
                 android:padding="8dp" />
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginTop="20dp"
@@ -48,24 +56,39 @@
                 android:orientation="horizontal">
 
                 <EditText
+                    android:id="@+id/et3"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
+                    android:layout_marginEnd="0dp"
+                    android:layout_toStartOf="@+id/iv_code"
                     android:background="@null"
+                    android:hint="请输入验证码"
                     android:inputType="textVisiblePassword"
                     android:maxLength="4"
-                    android:hint="请输入验证码"
                     android:padding="8dp" />
 
                 <ImageView
                     android:id="@+id/iv_code"
-                    android:layout_width="200dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:padding="16dp"
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="0dp"
+                    android:paddingHorizontal="6dp"
+                    android:paddingTop="6dp"
                     tools:ignore="ContentDescription" />
 
-            </LinearLayout>
+                <TextView
+                    android:layout_width="100dp"
+                    android:layout_height="20dp"
+                    android:layout_below="@+id/iv_code"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginEnd="0dp"
+                    android:textSize="10sp"
+                    android:gravity="center"
+                    android:text="看不清？点击刷新" />
+
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/tv_register"
@@ -82,7 +105,5 @@
                 android:text="注册"
                 android:textSize="20sp" />
         </LinearLayout>
-
-
-    </RelativeLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

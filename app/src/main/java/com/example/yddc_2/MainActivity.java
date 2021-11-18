@@ -2,16 +2,18 @@ package com.example.yddc_2;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
+
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 
 import com.example.yddc_2.adapter.ViewPagerAdapter;
-import com.example.yddc_2.databinding.ActivityMainBinding;
 import com.example.yddc_2.navigation.find.SecondFragment;
 import com.example.yddc_2.navigation.me.ThirdFragment;
 import com.example.yddc_2.navigation.word.FirstFragment;
@@ -26,17 +28,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private int pos ;//记录哪一页
-    //private ActivityMainBinding mBinding;
+    private int pos = 0 ;//记录哪一页
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //mBinding = DataBindingUtil.setContentView(this,R.layout.activity_main);
         initBottomNavigationView();
+        //StatusBarUtil.fullScreen(this);
         HideBar.hideBar(this);//暂时不理想
     }
-
+    // 按返回键不销毁当前Activity
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            moveTaskToBack(true);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
     private void initBottomNavigationView(){
         BottomSheetBehavior<LinearLayout> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
         BottomSheetBehavior<BottomNavigationView> NavBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomNavigationView));
@@ -85,12 +95,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 bottomNavigationView.getMenu().getItem(position).setChecked(true);
-                if(position == 1){
-                    pos = 1;
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                }else {
-                    pos = 2;//或者pos=0
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                switch (position)
+                {
+                    case 0 :
+                        pos = 0;
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        break;
+                    case 1 :
+                        pos = 1;
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        break;
+                    case 2:
+                        pos = 2;
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        break;
                 }
             }
 
@@ -116,27 +134,40 @@ public class MainActivity extends AppCompatActivity {
                     //收起状态
                     case BottomSheetBehavior.STATE_DRAGGING:
                         //拖动时
+//                        if(NavBehavior.getState()!=BottomSheetBehavior.STATE_HIDDEN)
+//                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+//                        else bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                         break;
                     case BottomSheetBehavior.STATE_EXPANDED:
                         //全部展开状态
-                        viewPager.setVisibility(View.GONE);
+                        viewPager.setVisibility(View.INVISIBLE);
                         NavBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        //背单词
+                        recite();
                         break;
                     case BottomSheetBehavior.STATE_HIDDEN:
                         //隐藏状态
                         //如果是find页面则不弹出，否则弹出
-                        if(pos==1){
-                            //bottomSheetBehavior什么都不做，保持状态,但是NavBehavior要升起来
-                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                        }else {
-                            //恢复状态
-                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                        }
+                        if(pos==0)bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+//                        switch (pos)
+//                        {
+//                            case 0 :
+//                                //恢复状态
+//                                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+//                                break;
+//                            case 1 :
+//                                //bottomSheetBehavior什么都不做，保持状态,但是NavBehavior要升起来
+//
+//                                break;
+//                            case 2 :
+//                                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+//                                break;
+//                        }
                         break;
                     case BottomSheetBehavior.STATE_HALF_EXPANDED:
                         //半展开状态
-                        viewPager.setVisibility(View.VISIBLE);
-                        NavBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+//                        viewPager.setVisibility(View.VISIBLE);
+//                        NavBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                         break;
                 }
             }
@@ -147,4 +178,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    private void recite(){
+
+    }
+
 }

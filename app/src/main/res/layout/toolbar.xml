@@ -1,0 +1,37 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/bar"
+    android:orientation="horizontal">
+
+
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="40dp"
+        android:layout_marginLeft="40dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:iconifiedByDefault="false"
+        android:background="@drawable/shape_6"
+        android:queryBackground="@null"
+        android:showDividers="none"
+        android:submitBackground="@null"
+        android:queryHint="Search" />
+<!--    android:queryBackground="@null"-->
+<!--    android:showDividers="none"-->
+<!--    android:submitBackground="@null"-->
+<!--    以上三个属性消除下划线-->
+<!--    <ImageView-->
+<!--        android:id="@+id/iv_scan"-->
+<!--        android:layout_width="20dp"-->
+<!--        android:layout_height="20dp"-->
+<!--        android:layout_alignParentRight="true"-->
+<!--        android:layout_centerVertical="true"-->
+<!--        android:layout_marginRight="10dp"-->
+<!--        android:src="@drawable/big_scan" />-->
+
+
+</RelativeLayout>

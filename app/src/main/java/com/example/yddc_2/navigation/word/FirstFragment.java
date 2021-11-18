@@ -1,34 +1,42 @@
 package com.example.yddc_2.navigation.word;
 
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 
-import android.renderscript.ScriptGroup;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.yddc_2.R;
+import com.example.yddc_2.bean.DaySentence;
 import com.example.yddc_2.databinding.FirstFragmentBinding;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import lecho.lib.hellocharts.gesture.ContainerScrollType;
 import lecho.lib.hellocharts.gesture.ZoomType;
-import lecho.lib.hellocharts.model.AbstractChartData;
 import lecho.lib.hellocharts.model.Axis;
 import lecho.lib.hellocharts.model.AxisValue;
-import lecho.lib.hellocharts.model.ChartData;
 import lecho.lib.hellocharts.model.Line;
 import lecho.lib.hellocharts.model.LineChartData;
 import lecho.lib.hellocharts.model.PointValue;
@@ -68,6 +76,11 @@ public class FirstFragment extends Fragment {
         getAxisXLables();//获取x轴的标注
         getAxisPoints();//获取坐标点
         initLineChart();
+        /**
+         * ********************************************
+         */
+        initDaySentence();
+
     }
 
     private void initLineChart(){
@@ -132,4 +145,54 @@ public class FirstFragment extends Fragment {
             mPointValues.add(new PointValue(i, score[i]));
         }
 
-    }}
+    }
+
+
+    /**
+     * **************************************************************************
+     */
+    private void initDaySentence()
+    {
+        mViewModel.getMds(getContext()).observe(getViewLifecycleOwner(), new Observer<DaySentence>() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onChanged(DaySentence daySentence) {
+                TextView textView = (TextView) requireActivity().findViewById(R.id.textView4);
+                ImageView imageView = (ImageView)requireActivity().findViewById(R.id.dayView);
+                if (daySentence.getNewslist()==null)
+                {
+                    textView.setText("Loading error ~");
+                    imageView.setImageResource(R.drawable.img3);
+                }
+                else
+                {
+                    textView.setText(daySentence.getNewslist().get(0).getContent());
+                    textView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            textView.setText(daySentence.getNewslist().get(0).getNote());
+//                            Glide.with(requireContext())
+//                                    //加载网址
+//                                    .load()
+//                                    //设置占位图
+//                                    .placeholder(R.mipmap.ic_launcher)
+//                                    //加载错误图
+//                                    .error(R.mipmap.ic_launcher)
+//                                    //磁盘缓存的处理
+//                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                                    .into(imageView);
+                            RoundedCorners roundedCorners = new RoundedCorners(20);//数字为圆角度数
+                            RequestOptions coverRequestOptions = new RequestOptions()
+                                    .transforms(new CenterCrop(), roundedCorners)
+                                    .diskCacheStrategy(DiskCacheStrategy.NONE)//不做磁盘缓存
+                                    .skipMemoryCache(true);//不做内存缓存
+                            //Glide 加载图片简单用法
+                            Glide.with(requireContext()).load(daySentence.getNewslist().get(0).getImgurl())
+                                    .apply(coverRequestOptions).into(imageView);
+                        }
+                    });
+                }
+            }
+        });
+    }
+}
