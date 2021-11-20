@@ -13,25 +13,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.bitmap.CenterCrop;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
-import com.bumptech.glide.request.RequestOptions;
-import com.example.yddc_2.R;
-import com.example.yddc_2.bean.DaySentence;
 import com.example.yddc_2.databinding.FirstFragmentBinding;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import lecho.lib.hellocharts.gesture.ContainerScrollType;
 import lecho.lib.hellocharts.gesture.ZoomType;
@@ -79,15 +69,14 @@ public class FirstFragment extends Fragment {
         /**
          * ********************************************
          */
-        initDaySentence();
+
 
     }
-
     private void initLineChart(){
 
             Line line = new Line(mPointValues).setColor(Color.parseColor("#FFCD41"));  //折线的颜色（橙色）
             List<Line> lines = new ArrayList<Line>();
-            line.setShape(ValueShape.CIRCLE);//折线图上每个数据点的形状  这里是圆形 （有三种 ：ValueShape.SQUARE  ValueShape.CIRCLE  ValueShape.DIAMOND）
+            line.setShape(ValueShape.DIAMOND);//折线图上每个数据点的形状  这里是圆形 （有三种 ：ValueShape.SQUARE  ValueShape.CIRCLE  ValueShape.DIAMOND）
             line.setCubic(false);//曲线是否平滑，即是曲线还是折线
             line.setFilled(false);//是否填充曲线的面积
             line.setHasLabels(true);//曲线的数据坐标是否加上备注
@@ -99,9 +88,9 @@ public class FirstFragment extends Fragment {
             data.setLines(lines);
             //坐标轴
             Axis axisX = new Axis(); //X轴
-            axisX.setHasTiltedLabels(true);  //X坐标轴字体是斜的显示还是直的，true是斜的显示
+            axisX.setHasTiltedLabels(false);  //X坐标轴字体是斜的显示还是直的，true是斜的显示
             axisX.setTextColor(Color.BLUE);  //设置字体颜色
-            //axisX.setName("date");  //表格名称
+            //axisX.setName("date");  //x轴名称
             axisX.setTextSize(10);//设置字体大小
             axisX.setMaxLabelChars(8); //最多几个X轴坐标，意思就是你的缩放让X轴上数据的个数7<=x<=mAxisXValues.length
             axisX.setValues(mAxisXValues);  //填充X轴的坐标名称
@@ -144,55 +133,9 @@ public class FirstFragment extends Fragment {
         for (int i = 0; i < score.length; i++) {
             mPointValues.add(new PointValue(i, score[i]));
         }
-
     }
-
-
     /**
      * **************************************************************************
      */
-    private void initDaySentence()
-    {
-        mViewModel.getMds(getContext()).observe(getViewLifecycleOwner(), new Observer<DaySentence>() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onChanged(DaySentence daySentence) {
-                TextView textView = (TextView) requireActivity().findViewById(R.id.textView4);
-                ImageView imageView = (ImageView)requireActivity().findViewById(R.id.dayView);
-                if (daySentence.getNewslist()==null)
-                {
-                    textView.setText("Loading error ~");
-                    imageView.setImageResource(R.drawable.img3);
-                }
-                else
-                {
-                    textView.setText(daySentence.getNewslist().get(0).getContent());
-                    textView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            textView.setText(daySentence.getNewslist().get(0).getNote());
-//                            Glide.with(requireContext())
-//                                    //加载网址
-//                                    .load()
-//                                    //设置占位图
-//                                    .placeholder(R.mipmap.ic_launcher)
-//                                    //加载错误图
-//                                    .error(R.mipmap.ic_launcher)
-//                                    //磁盘缓存的处理
-//                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                                    .into(imageView);
-                            RoundedCorners roundedCorners = new RoundedCorners(20);//数字为圆角度数
-                            RequestOptions coverRequestOptions = new RequestOptions()
-                                    .transforms(new CenterCrop(), roundedCorners)
-                                    .diskCacheStrategy(DiskCacheStrategy.NONE)//不做磁盘缓存
-                                    .skipMemoryCache(true);//不做内存缓存
-                            //Glide 加载图片简单用法
-                            Glide.with(requireContext()).load(daySentence.getNewslist().get(0).getImgurl())
-                                    .apply(coverRequestOptions).into(imageView);
-                        }
-                    });
-                }
-            }
-        });
-    }
+
 }

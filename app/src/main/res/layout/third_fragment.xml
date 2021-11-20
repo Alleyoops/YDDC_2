@@ -9,312 +9,394 @@
             name="handler"
             type="com.example.yddc_2.utils.MyHandler" />
     </data>
-<LinearLayout
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="wrap_content">
 
 
-            <RelativeLayout
+
+    <ScrollView
+        android:id="@+id/scrollView3"
+        android:scrollbars="none"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_marginTop="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/card"
-                    android:elevation="1dp"
-                    app:cardCornerRadius="10dp"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_marginTop="10dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-                <ImageView
-                    android:id="@+id/back"
-                    android:layout_width="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/img3"
-                    android:layout_height="200dp"/>
-                </androidx.cardview.widget.CardView>
 
-                <ImageView
-                    android:layout_marginTop="15dp"
-                    android:layout_width="26dp"
-                    android:layout_height="30dp"
-                    android:elevation="2dp"
-                    android:layout_toStartOf="@+id/iv1"
-                    android:layout_marginEnd="10dp"
-                    android:src="@drawable/ic_scan" />
-                <ImageView
-                    android:id="@+id/iv1"
-                    android:elevation="2dp"
-                    android:layout_marginTop="15dp"
-                    android:layout_width="25dp"
-                    android:layout_height="30dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="30dp"
-                    android:onClick="@{handler.onClickView3}"
-                    android:src="@drawable/ic_setting" />
-
-                <org.raphets.roundimageview.RoundImageView
-                    android:id="@+id/iv_head"
-                    android:layout_width="75dp"
-                    android:layout_height="75dp"
-                    app:border_color="@color/bar"
-                    app:border_width="5dp"
-                    android:layout_below="@+id/card"
-                    android:elevation="2dp"
-                    android:layout_marginStart="40dp"
-                    android:layout_marginTop="-40dp"
-                    android:onClick="@{handler.onClickView2}"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/ic_head" />
-
-                <ProgressBar
-                    android:id="@+id/pBar"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:elevation="2dp"
-                    android:layout_alignStart="@+id/iv_head"
-                    android:layout_alignTop="@+id/iv_head"
-                    android:layout_alignEnd="@+id/iv_head"
-                    android:layout_alignBottom="@+id/iv_head" />
-
-                <TextView
-                    android:id="@+id/tv_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/card"
-                    android:layout_marginStart="10dp"
-                    android:elevation="2dp"
-                    android:layout_marginTop="-1dp"
-                    android:layout_toEndOf="@+id/iv_head"
-                    android:onClick="@{handler.onClickView2}"
-                    android:textColor="@color/black"
-                    android:textSize="20sp" />
-
-                <TextView
-                    android:id="@+id/desc"
-                    android:elevation="2dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/card"
-                    android:layout_alignStart="@+id/iv_head"
-                    android:layout_marginStart="78dp"
-                    android:layout_marginTop="-18dp"
-                    android:onClick="@{handler.onClickView2}"
-                    android:background="@drawable/shape_1"
-                    android:paddingHorizontal="10dp"
-                    android:textSize="10sp" />
-
-                <LinearLayout
-                    android:background="@drawable/shape_7"
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="20dp"
-                    android:layout_marginHorizontal="20dp"
-                    android:layout_below="@+id/iv_head"
-                    android:layout_height="60dp">
-                    <RelativeLayout
-                        android:gravity="center"
-                        android:layout_weight="1"
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginTop="10dp"
+                        android:elevation="1dp"
+                        app:cardCornerRadius="10dp">
 
-                        <TextView
-                            android:id="@+id/textView"
-                            android:layout_width="match_parent"
-                            android:layout_height="36dp"
-                            android:gravity="center_horizontal"
-                            android:text="0"
-                            android:textColor="@color/teal_200"
-                            android:textSize="26sp" />
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_horizontal"
-                            android:layout_below="@+id/textView"
-                            android:text="我的发布" />
-
-                    </RelativeLayout>
-                    <View
-                        android:layout_width="2dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center_vertical"
-                        android:background="#eee" />
-                    <RelativeLayout
-                        android:gravity="center"
-                        android:layout_weight="1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:id="@+id/textView2"
-                            android:layout_width="match_parent"
-                            android:layout_height="36dp"
-                            android:text="0"
-                            android:gravity="center_horizontal"
-                            android:textColor="@color/teal_200"
-                            android:textSize="26sp" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_horizontal"
-                            android:layout_below="@+id/textView2"
-                            android:text="关注" />
-                    </RelativeLayout>
-                    <View
-                        android:layout_width="2dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center_vertical"
-                        android:background="#eee" />
-                    <RelativeLayout
-                        android:gravity="center"
-                        android:layout_weight="1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:id="@+id/textView3"
-                            android:gravity="center_horizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="36dp"
-                            android:text="0"
-                            android:textColor="@color/teal_200"
-                            android:textSize="26sp" />
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@+id/textView3"
-                            android:gravity="center_horizontal"
-                            android:text="单词数" />
-                    </RelativeLayout>
-                    <View
-                        android:layout_width="2dp"
-                        android:layout_height="40dp"
-                        android:layout_gravity="center_vertical"
-                        android:background="#eee" />
-                    <RelativeLayout
-                        android:gravity="center"
-                        android:layout_weight="1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
                         <ImageView
-                            android:id="@+id/iv2"
-                            android:layout_centerHorizontal="true"
-                            android:layout_width="28dp"
-                            android:layout_height="36dp"
-                            android:src="@drawable/ic_clock" />
-                        <TextView
-                            android:text="0"
+                            android:id="@+id/back"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:scaleType="fitXY"
+                            android:src="@drawable/img3" />
+                    </androidx.cardview.widget.CardView>
+
+
+                    <org.raphets.roundimageview.RoundImageView
+                        android:id="@+id/iv_head"
+                        android:layout_width="75dp"
+                        android:layout_height="75dp"
+                        android:layout_below="@+id/card"
+                        android:layout_marginStart="40dp"
+                        android:layout_marginTop="-40dp"
+                        android:elevation="2dp"
+                        android:onClick="@{handler.onClickView2}"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_head"
+                        app:border_color="@color/bar"
+                        app:border_width="5dp" />
+
+                    <ProgressBar
+                        android:id="@+id/pBar"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:layout_alignStart="@+id/iv_head"
+                        android:layout_alignTop="@+id/iv_head"
+                        android:layout_alignEnd="@+id/iv_head"
+                        android:layout_alignBottom="@+id/iv_head"
+                        android:elevation="2dp" />
+
+                    <TextView
+                        android:id="@+id/tv_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/card"
+
+                        android:layout_toEndOf="@+id/iv_head"
+                        android:elevation="2dp"
+                        android:gravity="center"
+                        android:onClick="@{handler.onClickView2}"
+                        android:textColor="@color/black"
+                        android:textSize="20sp"
+                        android:textStyle="italic|bold" />
+
+                    <TextView
+                        android:id="@+id/desc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/card"
+                        android:layout_alignStart="@+id/iv_head"
+                        android:layout_marginStart="80dp"
+                        android:layout_marginTop="-20dp"
+                        android:background="@drawable/shape_1"
+                        android:elevation="2dp"
+                        android:onClick="@{handler.onClickView2}"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="10sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="80dp"
+                        android:layout_below="@+id/iv_head"
+                        android:layout_marginHorizontal="20dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="20dp"
+                        android:background="@drawable/shape_8"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center_horizontal"
-                            android:layout_below="@+id/iv2" />
-                    </RelativeLayout>
+                            android:layout_weight="1"
+                            android:gravity="center">
 
-                </LinearLayout>
-            </RelativeLayout>
+                            <TextView
+                                android:id="@+id/textView"
+                                android:layout_width="match_parent"
+                                android:layout_height="36dp"
+                                android:gravity="center_horizontal"
+                                android:text="0"
+                                android:textColor="#B4F4EE"
+                                android:textSize="26sp"
+                                android:textStyle="bold" />
 
-    <TextView
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/textView"
+                                android:gravity="center_horizontal"
+                                android:text="我的发布"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                        </RelativeLayout>
+                        <!--                    <View-->
+                        <!--                        android:layout_width="1dp"-->
+                        <!--                        android:layout_height="30dp"-->
+                        <!--                        android:layout_gravity="center_vertical"-->
+                        <!--                        android:background="#E2EDFB" />-->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center">
+
+                            <TextView
+                                android:id="@+id/textView2"
+                                android:layout_width="match_parent"
+                                android:layout_height="36dp"
+                                android:gravity="center_horizontal"
+                                android:text="0"
+                                android:textColor="#B4F4EE"
+                                android:textSize="26sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/textView2"
+                                android:gravity="center_horizontal"
+                                android:text="关注"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+                        <!--                    <View-->
+                        <!--                        android:layout_width="1dp"-->
+                        <!--                        android:layout_height="30dp"-->
+                        <!--                        android:layout_gravity="center_vertical"-->
+                        <!--                        android:background="#E2EDFB" />-->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center">
+
+                            <TextView
+                                android:id="@+id/textView3"
+                                android:layout_width="match_parent"
+                                android:layout_height="36dp"
+                                android:gravity="center_horizontal"
+                                android:text="0"
+                                android:textColor="#B4F4EE"
+                                android:textSize="26sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/textView3"
+                                android:gravity="center_horizontal"
+                                android:text="单词数"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+                        <!--                    <View-->
+                        <!--                        android:layout_width="1dp"-->
+                        <!--                        android:layout_height="30dp"-->
+                        <!--                        android:layout_gravity="center_vertical"-->
+                        <!--                        android:background="#E2EDFB" />-->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:id="@+id/iv2"
+                                android:layout_width="28dp"
+                                android:layout_height="36dp"
+                                android:layout_centerHorizontal="true"
+                                android:src="@drawable/ic_clock" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/iv2"
+                                android:gravity="center_horizontal"
+                                android:text="0"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+                        </RelativeLayout>
+
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    android:text="学习设置"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginHorizontal="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:padding="5dp"
+                        android:text="我的词典"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:layout_width="80dp"
+                        android:layout_height="30dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerInParent="true"
+                        android:background="@drawable/shape_5">
+
+                        <Spinner
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:spinnerMode="dialog" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginHorizontal="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:padding="5dp"
+                        android:text="记忆模式"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:layout_width="80dp"
+                        android:layout_height="30dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerInParent="true"
+                        android:background="@drawable/shape_5">
+
+                        <Spinner
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:spinnerMode="dialog" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginHorizontal="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:padding="5dp"
+                        android:text="手表提醒"
+                        android:textSize="14sp" />
+
+                    <com.kyleduo.switchbutton.SwitchButton
+                        android:layout_width="60dp"
+                        android:layout_height="50dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="5dp"
+                        app:kswBackColor="#eee"
+                        app:kswTextOff="OFF"
+                        app:kswTextOn="ON"
+                        app:kswThumbColor="@color/teal_200"
+                        app:kswThumbMargin="5dp" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginHorizontal="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:padding="5dp"
+                        android:text="手机提醒"
+                        android:textSize="14sp" />
+
+                    <com.kyleduo.switchbutton.SwitchButton
+                        android:layout_width="60dp"
+                        android:layout_height="50dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="5dp"
+                        app:kswBackColor="#eee"
+                        app:kswTextOff="OFF"
+                        app:kswTextOn="ON"
+                        app:kswThumbColor="@color/teal_200"
+                        app:kswThumbMargin="5dp" />
+                </RelativeLayout>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="300dp" />
+
+        </LinearLayout>
+    </ScrollView>
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="25dp"
-        android:text="学习设置"
-        android:textColor="@color/black"
-        android:textSize="16sp"/>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="20dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="我的单词书"
-            android:textSize="14sp"
-            android:gravity="center_vertical"
-            android:padding="5dp"/>
-        <LinearLayout
-            android:layout_width="80dp"
-            android:layout_centerInParent="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="10dp"
+            android:layout_toStartOf="@+id/iv1"
+            android:elevation="2dp"
+            android:src="@drawable/ic_scan" />
+
+        <ImageView
+            android:id="@+id/iv1"
+            android:layout_width="25dp"
             android:layout_height="30dp"
             android:layout_alignParentEnd="true"
-            android:background="@drawable/shape_5">
-            <Spinner
-                android:layout_gravity="center_vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:spinnerMode="dialog"
-                />
-        </LinearLayout>
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="30dp"
+            android:elevation="2dp"
+            android:onClick="@{handler.onClickView3}"
+            android:src="@drawable/ic_setting" />
     </RelativeLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="20dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="记忆模式"
-            android:textSize="14sp"
-            android:gravity="center_vertical"
-            android:padding="5dp"/>
-        <LinearLayout
-            android:layout_width="80dp"
-            android:layout_centerInParent="true"
-            android:layout_height="30dp"
-            android:layout_alignParentEnd="true"
-            android:background="@drawable/shape_5">
-            <Spinner
-                android:layout_gravity="center_vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:spinnerMode="dialog"
-                />
-        </LinearLayout>
-    </RelativeLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="20dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="手表提醒"
-            android:textSize="14sp"
-            android:gravity="center_vertical"
-            android:padding="5dp"/>
-        <com.kyleduo.switchbutton.SwitchButton
-            android:layout_width="60dp"
-            android:layout_height="50dp"
-            android:layout_alignParentEnd="true"
-            app:kswThumbColor="@color/teal_200"
-            app:kswBackColor="#eee"
-            app:kswThumbMargin="5dp"
-            app:kswTextOff="OFF"
-            app:kswTextOn="ON"
-            android:layout_marginEnd="5dp"/>
-    </RelativeLayout>
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="20dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="手机提醒"
-            android:textSize="14sp"
-            android:gravity="center_vertical"
-            android:padding="5dp"/>
-        <com.kyleduo.switchbutton.SwitchButton
-            android:layout_width="60dp"
-            android:layout_height="50dp"
-            android:layout_alignParentEnd="true"
-            app:kswThumbColor="@color/teal_200"
-            app:kswBackColor="#eee"
-            app:kswThumbMargin="5dp"
-            app:kswTextOff="OFF"
-            app:kswTextOn="ON"
-            android:layout_marginEnd="5dp"/>
-    </RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+
 </LinearLayout>
+
 
 </layout>

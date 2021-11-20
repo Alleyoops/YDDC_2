@@ -166,10 +166,10 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/shape_4"
                 android:layout_marginHorizontal="15dp"
                 android:padding="10dp"
                 android:orientation="vertical">
+
                 <lecho.lib.hellocharts.view.LineChartView
                     android:id="@+id/chart"
                     android:layout_width="match_parent"
@@ -180,10 +180,10 @@
                 android:id="@+id/tv1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="15dp"
+                android:layout_marginHorizontal="25dp"
                 android:layout_marginVertical="5dp"
                 android:text="您背单词效率较高的时间集中在10:00~12:00\n最近一周，您平均"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:textColor="@color/black"/>
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -191,7 +191,7 @@
                 android:layout_marginHorizontal="15dp"
                 android:padding="10dp"
                 android:orientation="vertical"
-                android:background="@drawable/shape_5">
+                android:background="@drawable/shape_6">
 
                 <RelativeLayout
                     android:layout_width="match_parent"

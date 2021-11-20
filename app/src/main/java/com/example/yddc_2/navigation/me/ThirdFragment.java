@@ -3,6 +3,7 @@ package com.example.yddc_2.navigation.me;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -90,29 +91,30 @@ public class ThirdFragment extends Fragment{
         return binding.getRoot();
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        ThirdViewModel mViewModel = new ViewModelProvider(this).get(ThirdViewModel.class);
-        // TODO: Use the ViewModel
-        try {
-            mViewModel.getUser(getContext()).observe(getViewLifecycleOwner(), new Observer<User>() {
-                @Override
-                public void onChanged(User user) {
-                    //显示姓名和简介
-                    binding.tvName.setText(user.getName());
-                    binding.desc.setText(user.getDesc());
-                    //显示头像和背景
-                    downHead_Back(binding.ivHead,user.getHUrl(),"/img_head.PNG");
-                    downHead_Back(binding.back,user.getBUrl(),"/img_back.PNG");
-                    //加载完后隐藏ProgressBar
-                    binding.pBar.setVisibility(View.INVISIBLE);
-                }
-            });
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
-        }
-    }
+//    @Override
+//    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+//        super.onActivityCreated(savedInstanceState);
+//        ThirdViewModel mViewModel = new ViewModelProvider(this).get(ThirdViewModel.class);
+//        // TODO: Use the ViewModel
+//        try {
+//            mViewModel.getUser(getContext()).observe(getViewLifecycleOwner(), new Observer<User>() {
+//                @SuppressLint("SetTextI18n")
+//                @Override
+//                public void onChanged(User user) {
+//                    //显示姓名和简介
+//                    binding.tvName.setText("\"gg"+user.getName()+" ");
+//                    binding.desc.setText(user.getDesc());
+//                    //显示头像和背景
+//                    downHead_Back(binding.ivHead,user.getHUrl(),"/img_head.PNG");
+//                    downHead_Back(binding.back,user.getBUrl(),"/img_back.PNG");
+//                    //加载完后隐藏ProgressBar
+//                    binding.pBar.setVisibility(View.INVISIBLE);
+//                }
+//            });
+//        } catch (GeneralSecurityException | IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     //下载头像或背景
     private  void downHead_Back(ImageView iv,String url,String name)
@@ -129,7 +131,7 @@ public class ThirdFragment extends Fragment{
                         .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                         .addConverterFactory(GsonConverterFactory.create())
                         .build();
-                Observable<ResponseBody> observable = retrofit.create(APIService.class).GetHead_Back();
+                Observable<ResponseBody> observable = retrofit.create(APIService.class).getHead_Back();
                 observable.subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new rx.Observer<ResponseBody>() {
@@ -172,10 +174,11 @@ public class ThirdFragment extends Fragment{
         // TODO: Use the ViewModel
         try {
             mViewModel.getUser(getContext()).observe(getViewLifecycleOwner(), new Observer<User>() {
+                @SuppressLint("SetTextI18n")
                 @Override
                 public void onChanged(User user) {
                     //显示姓名和简介
-                    binding.tvName.setText(user.getName());
+                    binding.tvName.setText(" "+user.getName()+" ");
                     binding.desc.setText(user.getDesc());
                     //显示头像和背景
                     downHead_Back(binding.ivHead,user.getHUrl(),"/img_head.PNG");
@@ -231,11 +234,12 @@ public class ThirdFragment extends Fragment{
                                         } catch (GeneralSecurityException | IOException e) {
                                             e.printStackTrace();
                                         }
+                                        alertDialog.dismiss();
                                     }
 
                                     @Override
                                     public void onCancel() {
-
+                                        alertDialog.dismiss();
                                     }
                                 });
                     }
@@ -265,10 +269,11 @@ public class ThirdFragment extends Fragment{
                                         } catch (GeneralSecurityException | IOException e) {
                                             e.printStackTrace();
                                         }
+                                        alertDialog.dismiss();
                                     }
                                     @Override
                                     public void onCancel() {
-
+                                        alertDialog.dismiss();
                                     }
                                 });
                     }
@@ -279,7 +284,7 @@ public class ThirdFragment extends Fragment{
     }
     //上传图片
     private void uploadPic(Context context,MultipartBody.Part part,String path) throws GeneralSecurityException, IOException {
-        Observable<ResponseBody> observable = GetNetService.GetApiService().ChangeHead(path,SecuritySP.DecryptSP(context,"token"),part);
+        Observable<ResponseBody> observable = GetNetService.GetApiService().changeHead(path,SecuritySP.DecryptSP(context,"token"),part);
         observable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new rx.Observer<ResponseBody>() {
@@ -308,6 +313,7 @@ public class ThirdFragment extends Fragment{
                                 PictureFileUtils.deleteCacheDirFile(requireContext(),PictureMimeType.ofImage());
                                 //更新显示
                                 onResume();
+                                Toast.makeText(context, "修改成功", Toast.LENGTH_SHORT).show();
                             }
                         } catch (IOException e) {
                             e.printStackTrace();

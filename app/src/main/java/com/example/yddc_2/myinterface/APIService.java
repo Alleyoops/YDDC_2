@@ -2,6 +2,7 @@ package com.example.yddc_2.myinterface;
 
 
 import com.example.yddc_2.bean.DaySentence;
+import com.example.yddc_2.bean.WordList;
 
 import java.util.Map;
 
@@ -49,13 +50,16 @@ public interface APIService {
     Observable<ResponseBody> update(@Header("token") String token, @FieldMap Map<String,String> info);
 
     @GET("/everyday/index")//每日一句key = "506799470fbdf81a728b2f19905545f3"
-    Observable<DaySentence> GetDaySentence(@Query("key") String key);
+    Observable<DaySentence> getDaySentence(@Query("key") String key);
 
-    @Multipart//修改头像
+    @Multipart//修改头像以及背景
     @POST("user/{path}")
-    Observable<ResponseBody> ChangeHead(@Path("path") String path, @Header("token") String token,@Part MultipartBody.Part file);
+    Observable<ResponseBody> changeHead(@Path("path") String path, @Header("token") String token,@Part MultipartBody.Part file);
 
     @GET(" ")//获取头像或背景
-    Observable<ResponseBody> GetHead_Back();
+    Observable<ResponseBody> getHead_Back();
+
+    @GET("/user/getlist")//获取背单词列表
+    Observable<WordList> getWordList(@Header("token") String token);
 
 }
