@@ -41,7 +41,7 @@ public class MainViewModel extends ViewModel {
                     @Override
                     public void onError(Throwable e) {
                         Toast.makeText(context, "getWordList: onError", Toast.LENGTH_SHORT).show();
-                        Log.d("FirstViewModel", "e:" + e);
+                        Log.d("MainViewModel", "e:" + e);
                     }
 
                     @Override

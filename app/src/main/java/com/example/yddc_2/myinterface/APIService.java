@@ -38,7 +38,8 @@ public interface APIService {
     //Retrofit的cookie的保存和添加都可以用Interceptor来实现,而且可以每次请求中都被实现
     //但是登录后会使用Token，所以就不需要cookie了
 
-    @GET("/user/getuserdetail")//获取用户详细信息
+
+    @POST("/user/getuserdetail")//获取用户详细信息
     Observable<ResponseBody> getUserDetail(@Header("token") String token);
 
     @FormUrlEncoded
@@ -59,7 +60,7 @@ public interface APIService {
     @GET(" ")//获取头像或背景
     Observable<ResponseBody> getHead_Back();
 
-    @GET("/user/getlist")//获取背单词列表
+    @POST("/user/getlist")//获取背单词列表
     Observable<WordList> getWordList(@Header("token") String token);
 
 }

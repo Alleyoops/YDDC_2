@@ -24,6 +24,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Calendar;
 
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
@@ -179,6 +180,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             int state = jsonObject.get("state").getAsInt();
                             if(state!=200)
                             {
+                                Toast.makeText(LoginActivity.this, "state:" + state, Toast.LENGTH_SHORT).show();
                                 new AlertDialog.Builder(LoginActivity.this)//基于activity，所以用getApplicationContext()无效
                                         .setTitle("提示")
                                         .setMessage("密码错误或未注册")
@@ -197,6 +199,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 SecuritySP.EncryptSP(getApplicationContext(),"token",token);
                                 SecuritySP.EncryptSP(getApplicationContext(),"ph",ph);
                                 SecuritySP.EncryptSP(getApplicationContext(),"pwd",pwd);
+//                                //登录时创建一个日期文件用来判断是否缓存wordList
+//                                SecuritySP.EncryptSP(getApplicationContext(),"dayTime","nothing");
                                 Intent intent = new Intent();
                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);//禁止返回上一页
                                 intent.setClass(LoginActivity.this, MainActivity.class);

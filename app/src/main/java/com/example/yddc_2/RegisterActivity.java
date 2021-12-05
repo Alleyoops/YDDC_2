@@ -241,16 +241,15 @@ public class RegisterActivity extends AppCompatActivity{
                         public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                             ResponseBody responseBody = response.body();
                             //不像RXjava，所有必须runOnUIThread了，无奈
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-//                                    try {
-//                                        int state = JsonParser.parseString(responseBody.string()).getAsJsonObject().get("state").getAsInt();
-//                                        Toast.makeText(RegisterActivity.this, String.valueOf(state), Toast.LENGTH_SHORT).show();
-//                                    } catch (IOException e) {
-//                                        e.printStackTrace();
-//                                    }
-                                       new AlertDialog.Builder(RegisterActivity.this)//基于activity，所以用getApplicationContext()无效
+                            try {
+                                int state = JsonParser.parseString(responseBody.string()).getAsJsonObject().get("state").getAsInt();
+                                if(state==200)
+                                {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+
+                                            new AlertDialog.Builder(RegisterActivity.this)//基于activity，所以用getApplicationContext()无效
                                                     .setTitle("提示")
                                                     .setMessage("注册成功")
                                                     .setPositiveButton("直接登录", new DialogInterface.OnClickListener() {
@@ -262,12 +261,24 @@ public class RegisterActivity extends AppCompatActivity{
                                                     .create()
                                                     .show();
 
+                                        }
+                                    });
                                 }
-                            });
+                                else
+                                {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(RegisterActivity.this, String.valueOf(state), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
                         }
                     });
-
-
                 }
             }
         });

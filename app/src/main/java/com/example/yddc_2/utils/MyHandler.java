@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.yddc_2.DetailActivity;
+import com.example.yddc_2.MainActivity;
 import com.example.yddc_2.SettingsActivity;
 
 public class MyHandler {
