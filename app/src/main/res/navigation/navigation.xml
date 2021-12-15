@@ -18,6 +18,6 @@
     <fragment
         android:id="@+id/me"
         android:name="com.example.yddc_2.navigation.me.ThirdFragment"
-        android:label="我"
+        android:label="我的"
         tools:layout="@layout/third_fragment" />
 </navigation>

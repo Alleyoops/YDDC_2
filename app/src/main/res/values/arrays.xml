@@ -9,4 +9,19 @@
         <item>reply</item>
         <item>reply_all</item>
     </string-array>
+
+        <string-array name="word_book">
+            <item>高中</item>
+            <item>CET4</item>
+            <item>CET6</item>
+            <item>考研</item>
+            <item>GRE</item>
+            <item>TOEFL</item>
+            <item>IELTS</item>
+        </string-array>
+
+    <string-array name="recite_way">
+        <item>任务模式</item>
+        <item>收藏模式</item>
+    </string-array>
 </resources>

@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Calendar;
 import java.util.Map;
 
 import okhttp3.Call;
@@ -82,37 +83,7 @@ public class RegisterActivity extends AppCompatActivity{
         return apiService;
     }
     private void InitCode(){
-//        //请求注册验证码
-//        Observable<ResponseBody> observable = GetApiService().GetCodeImage();
-//        observable.subscribeOn(Schedulers.io())//在子线程中进行http访问
-//                .observeOn(AndroidSchedulers.mainThread())//UI线程处理返回接口
-//                .subscribe(new Observer<ResponseBody>() {//订阅
-//                    @Override
-//                    public void onCompleted() {
-//                        /*事件队列完结。RxJava 不仅把每个事件单独处理，还会把它们看做一个队列。
-//                         *RxJava 规定，当不会再有新的 onNext() 发出时，需要触发 onCompleted() 方法作为标志
-//                         */
-//                        //Toast.makeText(LoginActivity.this, "ok", Toast.LENGTH_SHORT).show();
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable e) {
-//                        /*事件队列异常。在事件处理过程中出异常时，onError() 会被触发，同时队列自动终止，不允许再有事件发出。
-//                         */
-//                        Log.d("LoginActivity", "e:" + e);
-//                        Toast.makeText(RegisterActivity.this, "rxjava:error", Toast.LENGTH_SHORT).show();
-//                    }
-//                    @Override
-//                    public void onNext(ResponseBody responseBody) {//RxJava的事件回调方法，针对普通事件。
-//                        Bitmap bitmap = BitmapFactory.decodeStream(responseBody.byteStream());
-//                        //获取布局
-//                        ImageView iv = rBinding.ivCode;
-//                        iv.setImageBitmap(bitmap);
-//
-//                        Register();//注册
-//                        //Toast.makeText(LoginActivity.this, "responseBody:" + responseBody, Toast.LENGTH_SHORT).show();
-//                    }
-//                });
+        //请求注册验证码
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
                 .url("http://youdian.asedrfa.top/getCodeImage")
@@ -169,51 +140,6 @@ public class RegisterActivity extends AppCompatActivity{
                 else
                 {
                     //注册
-//                    Observable<ResponseBody> observable = GetApiService().register(code,pwd,ph);
-//                    observable.subscribeOn(Schedulers.io())//在子线程中进行http访问
-//                            .observeOn(AndroidSchedulers.mainThread())//UI线程处理返回接口
-//                            .subscribe(new Observer<ResponseBody>() {
-//                                @Override
-//                                public void onCompleted() {
-//
-//                                }
-//
-//                                @Override
-//                                public void onError(Throwable e) {
-//                                    Toast.makeText(RegisterActivity.this, "onError", Toast.LENGTH_SHORT).show();
-//                                }
-//
-//                                @Override
-//                                public void onNext(ResponseBody responseBody) {
-//                                    try {
-//                                        int state = JsonParser.parseString(responseBody.string()).getAsJsonObject().get("state").getAsInt();
-//                                        if(state!=200){
-//                                            new AlertDialog.Builder(RegisterActivity.this)//基于activity，所以用getApplicationContext()无效
-//                                                    .setTitle("提示")
-//                                                    .setMessage("注册失败")
-//                                                    .setPositiveButton("确定", (dialog, which) -> {
-//                                                    })
-//                                                    .create()
-//                                                    .show();
-//                                        }
-//                                        else{
-//                                            new AlertDialog.Builder(RegisterActivity.this)//基于activity，所以用getApplicationContext()无效
-//                                                    .setTitle("提示")
-//                                                    .setMessage("注册成功")
-//                                                    .setPositiveButton("直接登录", new DialogInterface.OnClickListener() {
-//                                                        @Override
-//                                                        public void onClick(DialogInterface dialog, int which) {
-//                                                            LoginByPwd(ph,pwd);
-//                                                        }
-//                                                    })
-//                                                    .create()
-//                                                    .show();
-//                                        }
-//                                    } catch (IOException e) {
-//                                        e.printStackTrace();
-//                                    }
-//                                }
-//                            });
                     OkHttpClient client = new OkHttpClient();
                     FormBody formBody = new FormBody.Builder()
                             .add("code",code)
@@ -264,15 +190,17 @@ public class RegisterActivity extends AppCompatActivity{
                                         }
                                     });
                                 }
-                                else
+                                else if(state==402)
                                 {
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(RegisterActivity.this, String.valueOf(state), Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(RegisterActivity.this,"请输入正确验证码", Toast.LENGTH_SHORT).show();
+                                            InitCode();
                                         }
                                     });
                                 }
+                                else Toast.makeText(RegisterActivity.this, "state:" + state, Toast.LENGTH_SHORT).show();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }

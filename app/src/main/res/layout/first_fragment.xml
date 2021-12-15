@@ -140,10 +140,11 @@
                         android:layout_width="70dp"
                         android:layout_height="70dp"
                         android:layout_gravity="center"
-                        android:textColor="@color/black"
+                        android:textColor="@color/item"
                         android:textSize="18sp"
+                        android:textStyle="bold"
                         android:gravity="center"
-                        android:text="watch"/>
+                        android:text="00:00"/>
 
                     <ImageView
                         android:layout_width="170dp"
@@ -167,14 +168,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="15dp"
+                android:background="@drawable/shape_8"
                 android:padding="10dp"
                 android:orientation="vertical">
-
-                <lecho.lib.hellocharts.view.LineChartView
-                    android:id="@+id/chart"
-                    android:layout_width="match_parent"
-                    android:layout_height="150dp" />
-
+                    <lecho.lib.hellocharts.view.LineChartView
+                        android:id="@+id/chart"
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp" />
             </LinearLayout>
             <TextView
                 android:id="@+id/tv1"
@@ -191,7 +191,7 @@
                 android:layout_marginHorizontal="15dp"
                 android:padding="10dp"
                 android:orientation="vertical"
-                android:background="@drawable/shape_6">
+                android:background="@drawable/shape_8">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -253,24 +253,16 @@
                 </RelativeLayout>
 
             </LinearLayout>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:layout_marginHorizontal="15dp"
-                android:paddingHorizontal="10dp"
-                android:textSize="10sp"
-                android:text="@string/pushstr" />
 
             <LinearLayout
                 android:orientation="horizontal"
+                android:layout_marginTop="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:layout_marginBottom="10dp"
                     android:layout_marginHorizontal="15dp"
                     android:background="@drawable/back_select_1"
                     android:text="今日任务"
@@ -279,7 +271,6 @@
                     app:layout_constraintStart_toStartOf="@+id/textView4"
                     app:layout_constraintTop_toBottomOf="@+id/textView4" />
                 <TextView
-                    android:layout_marginBottom="10dp"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_marginHorizontal="15dp"
@@ -292,66 +283,19 @@
                     app:layout_constraintTop_toBottomOf="@+id/textView4" />
             </LinearLayout>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginHorizontal="15dp"
-                android:background="@drawable/shape_1"
-                android:padding="10dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:gravity="center_vertical"
-                    android:text="背单词提醒" />
-
-                <com.kyleduo.switchbutton.SwitchButton
-                    android:layout_width="50dp"
-                    android:layout_height="30dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:textSize="10sp"
-                    app:kswBackColor="#eee"
-                    app:kswTextOff="OFF"
-                    app:kswTextOn="ON"
-                    app:kswThumbColor="@color/teal_200"
-                    app:kswThumbMargin="5dp" />
-            </RelativeLayout>
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="5dp"
-                    android:layout_marginStart="25dp"
-                    android:layout_marginEnd="5dp"
-                    android:textSize="10sp"
-                    android:text="@string/pushstr2" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="5dp"
-                    android:textSize="12sp"
-                    android:textColor="@color/teal_200"
-                    android:text="2021年11月12日" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="5dp"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
-                    android:textSize="10sp"
-                    android:text="预计每天30分钟" />
-
-            </LinearLayout>
-
+                android:layout_marginHorizontal="15dp"
+                android:layout_marginVertical="10dp"
+                android:text="修改计划"
+                android:textSize="25sp"
+                android:textColor="@color/black"/>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="15dp"
-                android:background="@drawable/shape_4"
+                android:background="@drawable/shape_8"
                 android:orientation="vertical">
                 <LinearLayout
                     android:paddingTop="5dp"
@@ -363,13 +307,22 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:text="每天背单词"/>
+                        android:textStyle="bold"
+                        android:text="LIST"/>
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="center"
-                        android:text="完成天数"/>
+                        android:textStyle="bold"
+                        android:text="NOL"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textStyle="bold"
+                        android:text="DAYS"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -378,24 +331,86 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
                     <com.shawnlin.numberpicker.NumberPicker
+                        android:id="@+id/list"
                         android:layout_weight="1"
                         android:layout_width="match_parent"
                         app:np_dividerDistance="30dp"
-                        app:np_dividerColor="@color/teal_200"
+                        app:np_dividerColor="@color/bar"
                         app:np_textSize="14sp"
                         app:np_selectedTextSize="14sp"
-                        android:layout_marginHorizontal="70dp"
+                        android:layout_marginHorizontal="30dp"
                         android:layout_height="100dp"/>
                     <com.shawnlin.numberpicker.NumberPicker
+                        android:id="@+id/nl"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        app:np_dividerDistance="30dp"
+                        app:np_dividerColor="@color/bar"
+                        app:np_textSize="14sp"
+                        app:np_selectedTextSize="14sp"
+                        android:layout_marginHorizontal="30dp"
+                        android:layout_height="100dp"/>
+                    <com.shawnlin.numberpicker.NumberPicker
+                        android:id="@+id/day"
                         android:layout_weight="1"
                         app:np_textSize="14sp"
                         app:np_selectedTextSize="14sp"
                         app:np_dividerDistance="30dp"
-                        app:np_dividerColor="@color/teal_200"
+                        app:np_dividerColor="@color/bar"
                         android:layout_width="match_parent"
-                        android:layout_marginHorizontal="70dp"
+                        android:layout_marginHorizontal="30dp"
                         android:layout_height="100dp"/>
                 </LinearLayout>
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_gravity="center_vertical"
+                    android:textSize="10sp"
+                    android:text="@string/pushstr2" />
+                <TextView
+                    android:id="@+id/overtime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:textSize="12sp"
+                    android:layout_gravity="center_vertical"
+                    android:textColor="@color/teal_200"
+                    android:text="2021年11月12日" />
+                <TextView
+                    android:id="@+id/daytime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:textSize="10sp"
+                    android:layout_gravity="center_vertical"
+                    android:text="预计每天30分钟" />
+                <View
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_height="10dp"/>
+                <TextView
+                    android:id="@+id/check"
+                    android:text="点击提交"
+                    android:textSize="10sp"
+                    android:background="@drawable/back_select_1"
+                    android:layout_width="wrap_content"
+                    android:gravity="center"
+                    android:visibility="invisible"
+                    android:layout_gravity="center_vertical"
+                    android:paddingHorizontal="5dp"
+                    android:layout_height="20dp"/>
 
             </LinearLayout>
 

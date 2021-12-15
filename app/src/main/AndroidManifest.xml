@@ -8,9 +8,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/icon"
+        android:icon="@drawable/watch2"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/icon"
+        android:roundIcon="@drawable/watch2"
         android:supportsRtl="true"
         android:theme="@style/Theme.YDDC_2"
         android:usesCleartextTraffic="true"

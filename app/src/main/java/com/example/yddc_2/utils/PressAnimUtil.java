@@ -22,10 +22,11 @@ public class PressAnimUtil {
      * @param targetView 要添加动画的目标view
      * @param listener 点击事件监听器，如果自身已经添加了点击事件可设置为null(这也是通用的参数)
      */
-    public static void addScaleAnimition(final View targetView, final View.OnClickListener listener) {
+    public static void addScaleAnimition(final View targetView, final View.OnClickListener listener,Float deep) {
         final int[] location = new int[2];
         targetView.getLocationOnScreen(location);
-        final ValueAnimator animator = new ValueAnimator().ofFloat(1, 0.8f);
+        //final ValueAnimator animator = new ValueAnimator().ofFloat(1, 0.8f);//默认
+        final ValueAnimator animator = new ValueAnimator().ofFloat(1, deep);
         animator.setRepeatCount(0);
         animator.setRepeatMode(ValueAnimator.REVERSE);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {

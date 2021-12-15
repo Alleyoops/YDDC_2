@@ -31,7 +31,6 @@ public class ThirdViewModel extends ViewModel {
     private User user;
     MutableLiveData<User> mUser;
     public MutableLiveData<User> getUser(Context context) throws GeneralSecurityException, IOException {
-
         mUser = new MutableLiveData<>();
         getUserDetail(SecuritySP.DecryptSP(context,"token"),context);
         return mUser;

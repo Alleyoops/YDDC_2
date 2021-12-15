@@ -32,8 +32,9 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
         return listFragment.size();
     }
 
-    @Override
-    public void destroyItem(@NonNull @NotNull ViewGroup container, int position, @NonNull @NotNull Object object) {
-        //super.destroyItem(container, position, object);
-    }
+//    @Override
+//    public void destroyItem(@NonNull @NotNull ViewGroup container, int position, @NonNull @NotNull Object object) {
+//        //super.destroyItem(container, position, object);
+//    }
+
 }

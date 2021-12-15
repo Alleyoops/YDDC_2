@@ -30,7 +30,6 @@ import com.example.yddc_2.databinding.SecondFragmentBinding;
 public class SecondFragment extends Fragment {
 
     private SecondViewModel mViewModel;
-    private SecondFragmentBinding binding;
     public static SecondFragment newInstance() {
         return new SecondFragment();
     }
@@ -38,7 +37,7 @@ public class SecondFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        binding = SecondFragmentBinding.inflate(inflater);
+        SecondFragmentBinding binding = SecondFragmentBinding.inflate(inflater);
         return binding.getRoot();
     }
 
@@ -57,9 +56,9 @@ public class SecondFragment extends Fragment {
             public void onChanged(DaySentence daySentence) {
                 TextView textView = (TextView) requireActivity().findViewById(R.id.textView4);
                 ImageView imageView = (ImageView)requireActivity().findViewById(R.id.dayView);
-                if (daySentence.getNewslist()==null)
+                if (daySentence.getCode()!=200)
                 {
-                    textView.setText("Loading error ~");
+                    textView.setText("深夜下班，祝你晚安！");
                     imageView.setImageResource(R.drawable.img3);
                 }
                 else

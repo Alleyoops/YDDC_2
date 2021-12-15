@@ -3,22 +3,33 @@ package com.example.yddc_2;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
+import android.app.Activity;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yddc_2.adapter.ViewPagerAdapter;
+import com.example.yddc_2.bean.Setting;
 import com.example.yddc_2.bean.WordList;
 import com.example.yddc_2.navigation.find.SecondFragment;
 import com.example.yddc_2.navigation.me.ThirdFragment;
@@ -31,6 +42,7 @@ import com.example.yddc_2.viewmodels.MainViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
+import com.luck.picture.lib.tools.ScreenUtils;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -47,21 +59,25 @@ public class MainActivity extends AppCompatActivity {
     public  static List<WordList.DataDTO> totalList;//比如通过链接获取到的今天的50个单词，每次背诵完后需要提交数据（更新totalList中单词的tag值）（此外totalList只是在用户注册后设置每日任务单词数前默认是50个）
     public  static List<WordList.DataDTO> tempTotalList;//tempTotalList的初始值是totalList中tag为0的所有单词，每生成一个recycleList，它就减去10个，recycleList每更新一个，它就减去一个
     public  static List<WordList.DataDTO> recycleList;//大小为10,保存每次背诵时循环的十个单词
-    //保存一个list中单词个数的随机数的数组
-    public  static Integer[] someOfTotal = new Integer[100];
+    //保存一个list中单词个数的随机数的数组(nol)
+    public  static Integer[] someOfTotal = new Integer[100];//max50
     //定义一个保存绿星和红星个数的数组
-    public static int[] greStar = new int[100];
-    public static int[] redStar = new int[100];
+    public static int[] greStar = new int[100];//max100
+    public static int[] redStar = new int[100];//max100
+    //计时器
+    public Chronometer tick ;
+    public static int time = 0;
+    public static long tempTime = 0L;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initBottomNavigationView();
-        try {
-            iniTodayWords();
-        } catch (GeneralSecurityException | IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            iniTodayWords();
+//        } catch (GeneralSecurityException | IOException e) {
+//            e.printStackTrace();
+//        }
+        initView();
         HideBar.hideBar(this);//暂时不理想
     }
 
@@ -75,9 +91,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    private void initBottomNavigationView() {
+    private void initView() {
+        tick = (Chronometer)findViewById(R.id.tick);
         BottomSheetBehavior<LinearLayout> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
-        BottomSheetBehavior<BottomNavigationView> NavBehavior = BottomSheetBehavior.from(findViewById(R.id.bottomNavigationView));
         List<Fragment> FragmentList = new ArrayList<>();
         ViewPager viewPager = (ViewPager) findViewById(R.id.view_pager);
         BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottomNavigationView);
@@ -87,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         FragmentList.add((new ThirdFragment()));
         //适配器
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager(), this, FragmentList);
-        viewPager.setAdapter(adapter);
+        viewPager.setAdapter(adapter);viewPager.setOffscreenPageLimit(2);
         //导航栏点击事件和ViewPager滑动事件,让两个控件相互关联
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -118,6 +134,54 @@ public class MainActivity extends AppCompatActivity {
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+//                final float MIN_SCALE = 0.85f;
+//                final float MIN_ALPHA = 0.5f;
+//                int width = viewPager.getWidth();
+                 final float MAX_ALPHA=0.5f;
+                 final float MAX_SCALE=0.9f;
+                viewPager.setPageTransformer(true, new ViewPager.PageTransformer() {
+                    @Override
+                    public void transformPage(@NonNull @NotNull View page, float position) {
+//                        if (position<-1) {
+//                        }else if(position<=0){
+//                            page.setTranslationX(0);
+//                            page.setAlpha(1);
+//                            page.setScaleX(1 );
+//                            page.setScaleY(1 );
+//                            //page.setRotationY((1+position)*360);
+//                        }else if(position<=1){
+//                            float scaleFactor = MIN_SCALE
+//                                    + (1 - MIN_SCALE) * (1 - Math.abs(position));
+//                            page.setTranslationX(width*-position);
+//                            page.setAlpha(1 - position);
+//                            page.setScaleX(scaleFactor);
+//                            page.setScaleY(scaleFactor);
+//                            //page.setRotationY((1-position)*360);
+//                        }
+
+                        if(position<-1||position>1){
+                            //不可见区域
+                            page.setAlpha(MAX_ALPHA);
+                            page.setScaleX(MAX_SCALE);
+                            page.setScaleY(MAX_SCALE);
+                        }else {
+                            //可见区域，透明度效果
+                            if(position<=0){
+                                //pos区域[-1,0)
+                                page.setAlpha(MAX_ALPHA+MAX_ALPHA*(1+position));
+                            }else{
+                                //pos区域[0,1]
+                                page.setAlpha(MAX_ALPHA+MAX_ALPHA*(1-position));
+                            }
+                            //可见区域，缩放效果
+                            //float scale=Math.max(MAX_SCALE,1-Math.abs(position));
+                            float x = Math.abs(position)/10;
+                            page.setScaleX(1-1.5f*x);
+                            page.setScaleY(1-1.5f*x);
+                        }
+
+                    }
+                });
             }
 
             @Override
@@ -127,14 +191,27 @@ public class MainActivity extends AppCompatActivity {
                     case 0:
                         pos = 0;
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        //不知道为什么，必须要延迟执行，不然会有很丑的画面。。
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                bottomSheetBehavior.setHideable(false);
+                            }
+                        },100);
                         break;
                     case 1:
-                        pos = 1;
+                        pos = 1;bottomSheetBehavior.setHideable(true);
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                         break;
                     case 2:
                         pos = 2;
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                bottomSheetBehavior.setHideable(false);
+                            }
+                        },100);
                         break;
                 }
             }
@@ -146,24 +223,42 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull @NotNull View bottomSheet, int newState) {
-                LinearLayout ll_tip = (LinearLayout)findViewById(R.id.ll_tip);
-                LinearLayout ll_content = (LinearLayout)findViewById(R.id.ll_content);
+                int temp0 = Integer.parseInt(tick.getText().toString().split(":")[0]);
+                int temp1 =Integer.parseInt(tick.getText().toString().split(":")[1]);
                 switch (newState) {
                     case BottomSheetBehavior.STATE_EXPANDED:
-                        ll_tip.setVisibility(View.GONE);
-                        //ll_content.setVisibility(View.VISIBLE);
-                        NavBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                        reciteOfWork();
+                        //开始计时
+                        if(flag == 0)//说明下拉框刚拉上来
+                        {
+                            flag = 1;
+                            //开始计时
+                            tick.setBase(SystemClock.elapsedRealtime()-(long) tempTime);
+                            tick.start();
+                        }
                         break;
                     case BottomSheetBehavior.STATE_COLLAPSED:
-                        ll_tip.setVisibility(View.VISIBLE);
-                        //ll_content.setVisibility(View.GONE);
-                        NavBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        if(flag==1)//下拉框收起
+                        {
+                            flag = 0;
+                            time=temp0*60+temp1;
+                            tempTime = SystemClock.elapsedRealtime()-tick.getBase();
+                            tick.stop();
+                        }
+                        //设置手表时间
+                        TextView watch = (TextView)findViewById(R.id.watch);
+                        watch.setText(tick.getText());
                         endRecite();
                         break;
                     case BottomSheetBehavior.STATE_HIDDEN:
                         if (pos == 0)
                             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        if(flag==1)//跟下拉框收起时的处理一样
+                        {
+                            flag = 0;
+                            time=temp0*60+temp1;
+                            tempTime = SystemClock.elapsedRealtime()-tick.getBase();
+                            tick.stop();
+                        }
                         break;
                     default:
                         break;
@@ -172,6 +267,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSlide(@NonNull @NotNull View bottomSheet, float slideOffset) {
+                LinearLayout ll_tip = (LinearLayout)findViewById(R.id.ll_tip);
+                ll_tip.setAlpha(1-slideOffset);
+                if(pos!=1&&slideOffset>0)
+                {
+                    BottomNavigationView bnv = (BottomNavigationView)findViewById(R.id.bottomNavigationView);
+                    bnv.setTranslationY(bnv.getHeight()*slideOffset);
+                    bnv.setAlpha(1-slideOffset);
+                }
 
             }
         });
@@ -195,14 +298,15 @@ public class MainActivity extends AppCompatActivity {
                         Gson gson = new Gson();
                         String jsonStr = gson.toJson(wordList);
                         SecuritySP.EncryptSP(MainActivity.this,"todayWords",jsonStr);
-                        WordList temp = gson.fromJson(jsonStr,WordList.class);
+                                                Toast.makeText(MainActivity.this, "fir", Toast.LENGTH_SHORT).show();
                         //放进一个可以方便增删的list
-                        totalList = temp.getData();
+                        totalList = gson.fromJson(jsonStr,WordList.class).getData();
+                        reciteOfWork();
                     } catch (GeneralSecurityException | IOException e) {
                         e.printStackTrace();
                     }
                 }
-            });Toast.makeText(this, "in", Toast.LENGTH_SHORT).show();
+            });
         }
         else
         {
@@ -211,12 +315,18 @@ public class MainActivity extends AppCompatActivity {
             Gson gson = new Gson();
             //放进一个可以方便增删的list
             totalList = gson.fromJson(jsonStr,WordList.class).getData();
+            reciteOfWork();
+                        Toast.makeText(this, "here", Toast.LENGTH_SHORT).show();
         }
     }
 
-
     //背单词之任务模式（默认模式）
-    private void reciteOfWork(){
+    private void reciteOfWork() throws GeneralSecurityException, IOException {
+        //获取setting
+        String str = SecuritySP.DecryptSP(MainActivity.this,"setting");
+        Gson gson = new Gson();
+        Setting setting = gson.fromJson(str,Setting.class);
+        int nol = setting.getData().getNumOfList();
         //选取totalList里tag为生词本的单词加入tempTotalList供用户背诵
         tempTotalList = new ArrayList<>();
         for (WordList.DataDTO wd :totalList) {
@@ -228,52 +338,53 @@ public class MainActivity extends AppCompatActivity {
             //···但是谁会测试到背完50个呢？所以先空着吧
             //
         }
-        //从tempTotalList随机取10个放进一个recycleList，（10个背完再背诵下一个recycleList），不满10个时就往里面依次添加totalList的元素
-        someOfTotal = GetRandomNum.getIntegers(10,tempTotalList.size());
+        //从tempTotalList随机取nol个放进一个recycleList，（10个背完再背诵下一个recycleList），不满10个时就往里面依次添加totalList的元素
+        someOfTotal = GetRandomNum.getIntegers(nol,tempTotalList.size());
         //
         //···这里当tempTotalList中的数目小于10时还需要写一个判决条件，否则估计会报错、闪退
         //···但是谁会测试到40个以上呢？所以先空着吧
         //
         recycleList = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < nol; i++) {
             recycleList.add(tempTotalList.get(someOfTotal[i]));
         }
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < nol; i++) {
             tempTotalList.remove(recycleList.get(i));//相当于把total移动十个到recycle
         }
-
-        if(flag == 0)//说明下拉框刚拉上来
-        {
-            flag = 1;
-            reciteProcess();
-        }
+        Toast.makeText(this, "totalList.size():" + totalList.size(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
+        reciteProcess();
     }
 
     //背诵流程
     public void reciteProcess()
     {
-
-        for (int i = 0; i < recycleList.size(); i++) {
-            Log.d("MainActivity", "recycleList:" + recycleList.get(i).getWord().getSpell());
-        }
-
+//        for (int i = 0; i < recycleList.size(); i++) {
+//            Log.d("MainActivity", "recycleList:" + recycleList.get(i).getWord().getSpell());
+//        }
+//Toast.makeText(this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
         TextView spell = (TextView) findViewById(R.id.spell);
+        TextView voice = (TextView) findViewById(R.id.voice);
         TextView item1 = (TextView) findViewById(R.id.item1);
         TextView item2 = (TextView) findViewById(R.id.item2);
         TextView item3 = (TextView) findViewById(R.id.item3);
         TextView item4 = (TextView) findViewById(R.id.item4);
-
+//Toast.makeText(this, "totalList.size():" + totalList.size(), Toast.LENGTH_SHORT).show();
         Log.d("MainActivity", "totalList.size():" + String.valueOf(totalList.size()));
         //从10个随机取四个
         Integer[] integers = GetRandomNum.getIntegers(4,recycleList.size());
         //
-        //···这里当tempTotalList中的数目小于10时还需要写一个判决条件，否则估计会报错、闪退
+        //···这里当recycleList中的数目小于10时还需要写一个判决条件，否则估计会报错、闪退
         //···但是谁会测试到40个以上呢？所以先空着吧
         //
         //四个选项随机选取一个作为正确答案
         int rightIndex = GetRandomNum.getOneInt(4);
         //四个中的第一个作为spell
         spell.setText(recycleList.get(integers[rightIndex]).getWord().getSpell());
+        //发音（英式美式等,不全）
+        if(recycleList.get(integers[rightIndex]).getWord().getAudio().size()!=0)
+        voice.setText(recycleList.get(integers[rightIndex]).getWord().getAudio().get(0).getTagDetail());
+        else voice.setText("");
         //选项赋值
         TextView[] items = new TextView[]{item1,item2,item3,item4};
         item1.setText(recycleList.get(integers[0]).getWord().getClearfix().get(0).getClearfix());
@@ -301,16 +412,59 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else
                 {
-                    v.setBackgroundResource(R.drawable.shape_10);
-                    items[rightIndex].setBackgroundResource(R.drawable.shape_9);
-                    items[rightIndex].setTextColor(getResources().getColor(R.color.teal_200));
-                    for (int i = 0; i < 4; i++) {
-                        if(rightIndex!=i) items[i].setTextColor(0xFFD4D6D8);//灰色
+                    switch (v.getId())
+                    {
+                        //收藏和无需再背
+                        case R.id.yes:
+                            items[rightIndex].setTextColor(getResources().getColor(R.color.teal_200));
+                            //把totalList的该单词tag设置为1,无需再背
+                            totalList.get(someOfTotal[integers[rightIndex]]).setTag(1);
+                            //已经掌握，就移除
+                            if(tempTotalList.size()!=0)
+                            {
+                                //tempTotalList还有
+                                recycleList.set(integers[rightIndex],tempTotalList.get(0));
+                                greStar[someOfTotal[integers[rightIndex]]] = 0;redStar[someOfTotal[integers[rightIndex]]] = 0;
+                                tempTotalList.remove(tempTotalList.get(0));
+                            }
+                            else
+                            {
+                                //tempTotalList已经全被加进Recycle了，就recycle-1
+                                recycleList.remove(recycleList.get(integers[rightIndex]));
+                                Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
+                            }
+
+                            Toast.makeText(MainActivity.this, "掌握+1", Toast.LENGTH_SHORT).show();
+                            break;
+                        case R.id.no:
+                            items[rightIndex].setTextColor(getResources().getColor(R.color.teal_200));
+                            //把totalList的该单词tag设置为4,手动收藏，但还是会在recycleList里循环背诵
+                            if(totalList.get(someOfTotal[integers[rightIndex]]).getTag()==4)
+                            Toast.makeText(MainActivity.this, "已收藏", Toast.LENGTH_SHORT).show();
+                            else
+                            {
+                                //避免重复收藏
+                                totalList.get(someOfTotal[integers[rightIndex]]).setTag(4);
+                                Toast.makeText(MainActivity.this, "收藏+1", Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+                        //其它三个选项
+                        default:
+                            v.setBackgroundResource(R.drawable.shape_10);
+                            items[rightIndex].setBackgroundResource(R.drawable.shape_9);
+                            items[rightIndex].setTextColor(getResources().getColor(R.color.teal_200));
+                            for (int i = 0; i < 4; i++) {
+                                if(rightIndex!=i) items[i].setTextColor(0xFFD4D6D8);//灰色
+                            }
+                            //选错,红星加一
+                            if(greStar[someOfTotal[integers[rightIndex]]]+redStar[someOfTotal[integers[rightIndex]]]<5
+                                    &&redStar[someOfTotal[integers[rightIndex]]]<3)
+                                redStar[someOfTotal[integers[rightIndex]]]+=1;
+                            break;
                     }
-                    //选错,红星加一
-                    if(greStar[someOfTotal[integers[rightIndex]]]+redStar[someOfTotal[integers[rightIndex]]]<5
-                            &&redStar[someOfTotal[integers[rightIndex]]]<3)
-                        redStar[someOfTotal[integers[rightIndex]]]+=1;
+
+
+
                 }
                 //刷新星星
                 refreshStar(greStar[someOfTotal[integers[rightIndex]]],redStar[someOfTotal[integers[rightIndex]]]);
@@ -328,22 +482,19 @@ public class MainActivity extends AppCompatActivity {
                     //从tempTotalList拿一个生词替换recycleList中这个位置的单词，并把这个单词星星数归0
                     recycleList.set(integers[rightIndex],tempTotalList.get(0));
                     greStar[someOfTotal[integers[rightIndex]]] = 0;redStar[someOfTotal[integers[rightIndex]]] = 0;
-//                    recycleList.remove(recycleList.get(integers[rightIndex]));//移除这一项
-//                    recycleList.add(tempTotalList.get(0));//从今日任务里依次添加进来一个新的单词
                     tempTotalList.remove(tempTotalList.get(0));
                 }
                 if(redStar[someOfTotal[integers[rightIndex]]]==3)
                 {
-                    //把把temp的该单词tag设置为2的该单词tag设置为3，相当于加入(自动)收藏
+                    //把totalList的该单词tag设置为3，相当于加入(自动)收藏
                     totalList.get(someOfTotal[integers[rightIndex]]).setTag(3);
                     //从tempTotalList拿一个生词替换recycleList中这个位置的单词
                     recycleList.set(integers[rightIndex],tempTotalList.get(0));
                     greStar[someOfTotal[integers[rightIndex]]] = 0;redStar[someOfTotal[integers[rightIndex]]] = 0;
-//                    recycleList.remove(recycleList.get(integers[rightIndex]));//移除这一项
-//                    recycleList.add(tempTotalList.get(0));//从今日任务里依次添加进来一个新的单词
                     tempTotalList.remove(tempTotalList.get(0));
                     Log.d("MainActivity", "here");
                 }
+
 //                    //更新本地的wordList
 //                    Gson gson = new Gson();
 //                    String jsonStr = gson.toJson(temp);
@@ -373,10 +524,12 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         //设置监听器
-        PressAnimUtil.addScaleAnimition(item1,listener);
-        PressAnimUtil.addScaleAnimition(item2,listener);
-        PressAnimUtil.addScaleAnimition(item3,listener);
-        PressAnimUtil.addScaleAnimition(item4,listener);
+        PressAnimUtil.addScaleAnimition(item1,listener,0.8f);
+        PressAnimUtil.addScaleAnimition(item2,listener,0.8f);
+        PressAnimUtil.addScaleAnimition(item3,listener,0.8f);
+        PressAnimUtil.addScaleAnimition(item4,listener,0.8f);
+        PressAnimUtil.addScaleAnimition((ImageView)findViewById(R.id.yes),listener,0.1f);
+        PressAnimUtil.addScaleAnimition((ImageView)findViewById(R.id.no),listener,0.1f);
     }
 
     //显示和刷新星星数目
@@ -404,15 +557,35 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();//后台暂停计时，后期再加个通知栏显示
+        //如果正在背单词才暂停计时,即bottomSheetBehavior为展开状态
+        BottomSheetBehavior<LinearLayout> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
+        if(bottomSheetBehavior.getState()==BottomSheetBehavior.STATE_EXPANDED) {
+            tempTime = SystemClock.elapsedRealtime() - tick.getBase();
+            tick.stop();
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();//重回app，开始计时
+        //如果正在背单词才继续计时,即bottomSheetBehavior为展开状态
+        BottomSheetBehavior<LinearLayout> bottomSheetBehavior = BottomSheetBehavior.from(findViewById(R.id.bottom_sheet_layout));
+        if(bottomSheetBehavior.getState()==BottomSheetBehavior.STATE_EXPANDED)
+        {
+            tick.setBase(SystemClock.elapsedRealtime()-tempTime);
+            tick.start();
+        }
+    }
+
     //结束背单词，提交背诵数据
     private void endRecite()
     {
-        if(flag==1)//下拉框收起
-        {
-            flag = 0;
-            Toast.makeText(this, "end", Toast.LENGTH_SHORT).show();
-        }
+
 
     }
+
 
 }

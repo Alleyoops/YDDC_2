@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.yddc_2.bean.DaySentence;
+import com.example.yddc_2.bean.Setting;
 import com.example.yddc_2.bean.WordList;
 import com.example.yddc_2.myinterface.APIService;
 import com.example.yddc_2.utils.GetNetService;
@@ -29,5 +30,35 @@ import rx.schedulers.Schedulers;
 
 public class FirstViewModel extends ViewModel {
     // TODO: Implement the ViewModel
+    MutableLiveData<Setting> mSetting;
+    public MutableLiveData<Setting> getmSetting(Context context) throws GeneralSecurityException, IOException {
+        mSetting = new MutableLiveData<>();
+        getSetting(context);
+        return mSetting;
+    };
 
+    //获取setting
+    private void getSetting(Context context) throws GeneralSecurityException, IOException {
+        Observable<Setting> observable = GetNetService.GetApiService().getSetting(SecuritySP.DecryptSP(context,"token"));
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Setting>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Toast.makeText(context, "getSetting: onError", Toast.LENGTH_SHORT).show();
+                        Log.d("MainViewModel", "e:" + e);
+                    }
+
+                    @Override
+                    public void onNext(Setting setting) {
+                        if(setting.getState()!=200) Toast.makeText(context, setting.getState().toString(), Toast.LENGTH_SHORT).show();
+                        else mSetting.setValue(setting);
+                    }
+                });
+    }
 }

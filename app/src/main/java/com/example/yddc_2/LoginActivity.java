@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
@@ -199,12 +200,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 SecuritySP.EncryptSP(getApplicationContext(),"token",token);
                                 SecuritySP.EncryptSP(getApplicationContext(),"ph",ph);
                                 SecuritySP.EncryptSP(getApplicationContext(),"pwd",pwd);
-//                                //登录时创建一个日期文件用来判断是否缓存wordList
-//                                SecuritySP.EncryptSP(getApplicationContext(),"dayTime","nothing");
                                 Intent intent = new Intent();
                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);//禁止返回上一页
                                 intent.setClass(LoginActivity.this, MainActivity.class);
                                 startActivity(intent);
+
                             }
                         } catch (IOException | GeneralSecurityException e) {
                             e.printStackTrace();

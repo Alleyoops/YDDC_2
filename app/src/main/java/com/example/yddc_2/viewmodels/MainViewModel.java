@@ -7,6 +7,7 @@ import android.widget.Toast;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.yddc_2.bean.Setting;
 import com.example.yddc_2.bean.WordList;
 import com.example.yddc_2.utils.GetNetService;
 import com.example.yddc_2.utils.SecuritySP;
@@ -26,6 +27,7 @@ public class MainViewModel extends ViewModel {
         getWordList(context);
         return mWordList;
     }
+
 
     //获取背单词的列表
     private void getWordList(Context context) throws GeneralSecurityException, IOException {
@@ -54,4 +56,5 @@ public class MainViewModel extends ViewModel {
                     }
                 });
     }
+
 }

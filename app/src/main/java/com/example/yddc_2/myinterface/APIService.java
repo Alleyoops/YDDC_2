@@ -2,6 +2,7 @@ package com.example.yddc_2.myinterface;
 
 
 import com.example.yddc_2.bean.DaySentence;
+import com.example.yddc_2.bean.Setting;
 import com.example.yddc_2.bean.WordList;
 
 import java.util.Map;
@@ -63,4 +64,13 @@ public interface APIService {
     @POST("/user/getlist")//获取背单词列表
     Observable<WordList> getWordList(@Header("token") String token);
 
+    @POST("user/getsetelement")//获取setting
+    Observable<Setting> getSetting(@Header("token") String token);
+
+    @FormUrlEncoded
+    @POST("user/setelement")//修改setting,circ_way默认0，FieldMap：tag  watRem  phoRem   dayTime  list    numOfList    circWay
+    Observable<ResponseBody> updateSetting(@Header("token") String token,@FieldMap Map<String, Object> setting);
+
+    @GET("/word/queryNumByTag")//获取单词本的总数
+    Observable<ResponseBody> getNumOfBook(@Query("tag") String tag);
 }

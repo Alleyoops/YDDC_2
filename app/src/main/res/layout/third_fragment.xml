@@ -78,15 +78,7 @@
                         app:border_color="@color/bar"
                         app:border_width="5dp" />
 
-                    <ProgressBar
-                        android:id="@+id/pBar"
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:layout_alignStart="@+id/iv_head"
-                        android:layout_alignTop="@+id/iv_head"
-                        android:layout_alignEnd="@+id/iv_head"
-                        android:layout_alignBottom="@+id/iv_head"
-                        android:elevation="2dp" />
+
 
                     <TextView
                         android:id="@+id/tv_name"
@@ -117,6 +109,7 @@
                         android:textSize="10sp" />
 
                     <LinearLayout
+                        android:id="@+id/ll_data"
                         android:layout_width="match_parent"
                         android:layout_height="80dp"
                         android:layout_below="@+id/iv_head"
@@ -266,19 +259,16 @@
                         android:text="我的词典"
                         android:textSize="14sp" />
 
-                    <LinearLayout
-                        android:layout_width="80dp"
-                        android:layout_height="30dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerInParent="true"
-                        android:background="@drawable/shape_5">
-
-                        <Spinner
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:spinnerMode="dialog" />
-                    </LinearLayout>
+                        <org.angmarch.views.NiceSpinner
+                            android:id="@+id/Sp_wordBook"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_alignParentEnd="true"
+                            app:arrowTint="@color/teal_200"
+                            android:text="未选"
+                            android:background="@color/bar"
+                            android:backgroundTint="@color/bar"
+                            android:spinnerMode="dropdown" />
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -291,22 +281,17 @@
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
                         android:padding="5dp"
-                        android:text="记忆模式"
+                        android:text="默认模式"
                         android:textSize="14sp" />
 
-                    <LinearLayout
-                        android:layout_width="80dp"
-                        android:layout_height="30dp"
+                    <org.angmarch.views.NiceSpinner
+                        android:id="@+id/Sp_reciteWay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_alignParentEnd="true"
-                        android:layout_centerInParent="true"
-                        android:background="@drawable/shape_5">
-
-                        <Spinner
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:spinnerMode="dialog" />
-                    </LinearLayout>
+                        app:arrowTint="@color/teal_200"
+                        android:backgroundTint="@color/bar"
+                        android:spinnerMode="dropdown"/>
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -322,16 +307,12 @@
                         android:text="手表提醒"
                         android:textSize="14sp" />
 
-                    <com.kyleduo.switchbutton.SwitchButton
-                        android:layout_width="60dp"
-                        android:layout_height="50dp"
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/sb_watch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="5dp"
-                        app:kswBackColor="#eee"
-                        app:kswTextOff="OFF"
-                        app:kswTextOn="ON"
-                        app:kswThumbColor="@color/teal_200"
-                        app:kswThumbMargin="5dp" />
+                        android:layout_marginEnd="10dp" />
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -347,22 +328,18 @@
                         android:text="手机提醒"
                         android:textSize="14sp" />
 
-                    <com.kyleduo.switchbutton.SwitchButton
-                        android:layout_width="60dp"
-                        android:layout_height="50dp"
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/sb_phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="5dp"
-                        app:kswBackColor="#eee"
-                        app:kswTextOff="OFF"
-                        app:kswTextOn="ON"
-                        app:kswThumbColor="@color/teal_200"
-                        app:kswThumbMargin="5dp" />
+                        android:layout_marginEnd="10dp" />
                 </RelativeLayout>
             </LinearLayout>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="300dp" />
+                android:layout_height="260dp" />
 
         </LinearLayout>
     </ScrollView>
@@ -373,7 +350,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-
+        <ProgressBar
+            android:id="@+id/pBar"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="30dp"/>
         <ImageView
             android:layout_width="26dp"
             android:layout_height="30dp"

@@ -54,14 +54,7 @@ public class SecondViewModel extends ViewModel {
 
                     @Override
                     public void onNext(DaySentence daySentence) {
-                        if (daySentence.getCode()!=200)
-                        {
-                            Toast.makeText(context, daySentence.getCode().toString(), Toast.LENGTH_SHORT).show();
-                        }
-                        else {
                             mds.setValue(daySentence);
-                        }
-
                     }
                 });
     }
