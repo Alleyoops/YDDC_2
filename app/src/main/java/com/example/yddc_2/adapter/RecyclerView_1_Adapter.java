@@ -242,7 +242,7 @@ public class RecyclerView_1_Adapter extends RecyclerView.Adapter<RecyclerView_1_
         View view = inflater.inflate(layout,null);
         builder.setView(view);
         AlertDialog alertDialog = builder.create();
-        alertDialog.getWindow().setBackgroundDrawableResource(R.drawable.shape_2);
+        alertDialog.getWindow().setBackgroundDrawableResource(R.drawable.shape_8);
         alertDialog.show();
         return alertDialog.getWindow();
     }

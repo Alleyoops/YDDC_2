@@ -2,17 +2,16 @@ package com.example.yddc_2;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
-import androidx.viewpager2.widget.ViewPager2;
 
-import android.app.Activity;
-import android.graphics.Color;
-import android.os.Build;
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -20,8 +19,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -29,11 +26,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yddc_2.adapter.ViewPagerAdapter;
+import com.example.yddc_2.bean.RequestData;
 import com.example.yddc_2.bean.Setting;
 import com.example.yddc_2.bean.WordList;
 import com.example.yddc_2.navigation.find.SecondFragment;
 import com.example.yddc_2.navigation.me.ThirdFragment;
 import com.example.yddc_2.navigation.word.FirstFragment;
+import com.example.yddc_2.utils.GetNetService;
 import com.example.yddc_2.utils.GetRandomNum;
 import com.example.yddc_2.utils.HideBar;
 import com.example.yddc_2.utils.PressAnimUtil;
@@ -42,7 +41,11 @@ import com.example.yddc_2.viewmodels.MainViewModel;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
-import com.luck.picture.lib.tools.ScreenUtils;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.huawei.hms.hmsscankit.ScanUtil;
+import com.huawei.hms.ml.scan.HmsScan;
+import com.huawei.hms.ml.scan.HmsScanAnalyzerOptions;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -50,33 +53,88 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+public class MainActivity extends AppCompatActivity implements  ActivityCompat.OnRequestPermissionsResultCallback {
     private int pos = 0;//记录哪一页
     private int flag = 0;//bottomSheet展开为1
     //以下三个list要理清关系
-    public  static List<WordList.DataDTO> totalList;//比如通过链接获取到的今天的50个单词，每次背诵完后需要提交数据（更新totalList中单词的tag值）（此外totalList只是在用户注册后设置每日任务单词数前默认是50个）
-    public  static List<WordList.DataDTO> tempTotalList;//tempTotalList的初始值是totalList中tag为0的所有单词，每生成一个recycleList，它就减去10个，recycleList每更新一个，它就减去一个
-    public  static List<WordList.DataDTO> recycleList;//大小为10,保存每次背诵时循环的十个单词
+    public static List<WordList.DataDTO> totalList;//比如通过链接获取到的今天的50个单词，每次背诵完后需要提交数据（更新totalList中单词的tag值）（此外totalList只是在用户注册后设置每日任务单词数前默认是50个）
+    public static List<WordList.DataDTO> tempTotalList;//tempTotalList的初始值是totalList中tag为0的所有单词，每生成一个recycleList，它就减去10个，recycleList每更新一个，它就减去一个
+    public static List<WordList.DataDTO> recycleList;//大小为10,保存每次背诵时循环的十个单词
     //保存一个list中单词个数的随机数的数组(nol)
-    public  static Integer[] someOfTotal = new Integer[100];//max50
+    public static Integer[] someOfTotal = new Integer[100];//max50
     //定义一个保存绿星和红星个数的数组
     public static int[] greStar = new int[100];//max100
     public static int[] redStar = new int[100];//max100
     //计时器
-    public Chronometer tick ;
-    public static int time = 0;
+    public Chronometer tick;
+    public static int time = 0;//秒数
     public static long tempTime = 0L;
+    //提交数据
+    public static RequestData data = new RequestData();
+    public static List<RequestData.WordRecordDTO> wrdList = new ArrayList<>();
+    public static List<RequestData.TimeRecordDTO> trdList = new ArrayList<>();
+    //扫码
+    public static final int CAMERA_REQ_CODE = 111;
+    public static final int DECODE = 1;
+    public static final int GENERATE = 2;
+    private static final int REQUEST_CODE_SCAN_ONE = 0X01;
+    public static final String RESULT = "SCAN_RESULT";
+    //扫码，申请权限
+    public void loadScanKitBtnClick(View view) {
+        requestPermission();
+    }
+    //扫码申请权限
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(
+                this,
+                new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE},
+                MainActivity.CAMERA_REQ_CODE);
+    }
+    //扫码申请权限
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NotNull String[] permissions, @NotNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (grantResults.length < 2 || grantResults[0] != PackageManager.PERMISSION_GRANTED || grantResults[1] != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        if (requestCode == CAMERA_REQ_CODE) {
+            ScanUtil.startScan(this, REQUEST_CODE_SCAN_ONE, new HmsScanAnalyzerOptions.Creator().setHmsScanTypes(HmsScan.QRCODE_SCAN_TYPE).create());
+        }
+    }
+    //扫码结果回调
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null) {
+            return;
+        }
+//        if (requestCode == REQUEST_CODE_SCAN_ONE) {//打开网页
+//            HmsScan obj = data.getParcelableExtra(ScanUtil.RESULT);
+//            Uri uri = Uri.parse(obj.showResult);
+//            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//            startActivity(intent);
+//        }
+        if (requestCode == REQUEST_CODE_SCAN_ONE) {
+            HmsScan obj = data.getParcelableExtra(ScanUtil.RESULT);
+            if (obj != null) {
+                Toast.makeText(this, obj.originalValue, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        try {
-//            iniTodayWords();
-//        } catch (GeneralSecurityException | IOException e) {
-//            e.printStackTrace();
-//        }
         initView();
         HideBar.hideBar(this);//暂时不理想
     }
@@ -223,8 +281,8 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull @NotNull View bottomSheet, int newState) {
-                int temp0 = Integer.parseInt(tick.getText().toString().split(":")[0]);
-                int temp1 =Integer.parseInt(tick.getText().toString().split(":")[1]);
+                int temp0 = Integer.parseInt(tick.getText().toString().split(":")[0]);//分
+                int temp1 =Integer.parseInt(tick.getText().toString().split(":")[1]);//秒
                 switch (newState) {
                     case BottomSheetBehavior.STATE_EXPANDED:
                         //开始计时
@@ -243,11 +301,29 @@ public class MainActivity extends AppCompatActivity {
                             time=temp0*60+temp1;
                             tempTime = SystemClock.elapsedRealtime()-tick.getBase();
                             tick.stop();
+                            try {
+                                //提交背诵数据
+                                data.setWord_record(wrdList);
+                                // 获取当天零点零分零秒的时间戳
+                                Calendar curentDay = Calendar.getInstance();
+                                curentDay.setTime(new Date());
+                                curentDay.set(Calendar.HOUR_OF_DAY, 0);
+                                curentDay.set(Calendar.MINUTE, 0);
+                                String day = String.valueOf(curentDay.getTime().getTime());
+                                trdList.add(new RequestData.TimeRecordDTO(day,time));
+                                data.setTime_record(trdList);
+                                summit(data);
+                                //提交后清空缓存
+                                trdList.clear();
+                                wrdList.clear();
+                            } catch (GeneralSecurityException | IOException e) {
+                                e.printStackTrace();
+                            }
+                            //设置手表时间
+                            TextView watch = (TextView)findViewById(R.id.watch);
+                            watch.setText(tick.getText());
                         }
-                        //设置手表时间
-                        TextView watch = (TextView)findViewById(R.id.watch);
-                        watch.setText(tick.getText());
-                        endRecite();
+
                         break;
                     case BottomSheetBehavior.STATE_HIDDEN:
                         if (pos == 0)
@@ -255,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
                         if(flag==1)//跟下拉框收起时的处理一样
                         {
                             flag = 0;
-                            time=temp0*60+temp1;
+                            //time=temp0*60+temp1;
                             tempTime = SystemClock.elapsedRealtime()-tick.getBase();
                             tick.stop();
                         }
@@ -298,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
                         Gson gson = new Gson();
                         String jsonStr = gson.toJson(wordList);
                         SecuritySP.EncryptSP(MainActivity.this,"todayWords",jsonStr);
-                                                Toast.makeText(MainActivity.this, "fir", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "词库更新", Toast.LENGTH_SHORT).show();
                         //放进一个可以方便增删的list
                         totalList = gson.fromJson(jsonStr,WordList.class).getData();
                         reciteOfWork();
@@ -316,7 +392,7 @@ public class MainActivity extends AppCompatActivity {
             //放进一个可以方便增删的list
             totalList = gson.fromJson(jsonStr,WordList.class).getData();
             reciteOfWork();
-                        Toast.makeText(this, "here", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "读取缓存词库", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -351,64 +427,131 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < nol; i++) {
             tempTotalList.remove(recycleList.get(i));//相当于把total移动十个到recycle
         }
-        Toast.makeText(this, "totalList.size():" + totalList.size(), Toast.LENGTH_SHORT).show();
-        Toast.makeText(this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "totalList.size():" + totalList.size(), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
         reciteProcess();
     }
 
     //背诵流程
-    public void reciteProcess()
-    {
-//        for (int i = 0; i < recycleList.size(); i++) {
-//            Log.d("MainActivity", "recycleList:" + recycleList.get(i).getWord().getSpell());
-//        }
-//Toast.makeText(this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
+    public void reciteProcess() throws GeneralSecurityException, IOException {
         TextView spell = (TextView) findViewById(R.id.spell);
         TextView voice = (TextView) findViewById(R.id.voice);
         TextView item1 = (TextView) findViewById(R.id.item1);
         TextView item2 = (TextView) findViewById(R.id.item2);
         TextView item3 = (TextView) findViewById(R.id.item3);
         TextView item4 = (TextView) findViewById(R.id.item4);
-//Toast.makeText(this, "totalList.size():" + totalList.size(), Toast.LENGTH_SHORT).show();
         Log.d("MainActivity", "totalList.size():" + String.valueOf(totalList.size()));
         //从10个随机取四个
-        Integer[] integers = GetRandomNum.getIntegers(4,recycleList.size());
-        //
-        //···这里当recycleList中的数目小于10时还需要写一个判决条件，否则估计会报错、闪退
-        //···但是谁会测试到40个以上呢？所以先空着吧
-        //
-        //四个选项随机选取一个作为正确答案
-        int rightIndex = GetRandomNum.getOneInt(4);
-        //四个中的第一个作为spell
-        spell.setText(recycleList.get(integers[rightIndex]).getWord().getSpell());
-        //发音（英式美式等,不全）
-        if(recycleList.get(integers[rightIndex]).getWord().getAudio().size()!=0)
-        voice.setText(recycleList.get(integers[rightIndex]).getWord().getAudio().get(0).getTagDetail());
-        else voice.setText("");
-        //选项赋值
+        Integer[] integers = new Integer[0];int rightIndex = 0;
         TextView[] items = new TextView[]{item1,item2,item3,item4};
-        item1.setText(recycleList.get(integers[0]).getWord().getClearfix().get(0).getClearfix());
-        item2.setText(recycleList.get(integers[1]).getWord().getClearfix().get(0).getClearfix());
-        item3.setText(recycleList.get(integers[2]).getWord().getClearfix().get(0).getClearfix());
-        item4.setText(recycleList.get(integers[3]).getWord().getClearfix().get(0).getClearfix());
+        if(recycleList.size()>=4)
+        {
+            integers = GetRandomNum.getIntegers(4,recycleList.size());
+            //四个选项随机选取一个作为正确答案
+            rightIndex = GetRandomNum.getOneInt(4);
+            //四个中的rightIndex作为spell
+            spell.setText(recycleList.get(integers[rightIndex]).getWord().getSpell());
+            //发音（英式美式等,不全）
+            if(recycleList.get(integers[rightIndex]).getWord().getAudio().size()!=0)
+                voice.setText(recycleList.get(integers[rightIndex]).getWord().getAudio().get(0).getTagDetail());
+            else voice.setText("");
+            //选项赋值
+            for (int i = 0; i < 4; i++) {
+                items[i].setText(recycleList.get(integers[i]).getWord().getClearfix().get(0).getClearfix());
+            }
+        }
+        else {
+                if(recycleList.size()==0)
+                {
+                    spell.setText("今日任务已完成");
+                    summit(data);//提交数据
+                    for (int i = 0; i < 4; i++) {
+                        items[i].setText("");
+                        items[i].setVisibility(View.INVISIBLE);
+                    }
+                    voice.setVisibility(View.INVISIBLE);
+                    LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
+                    LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
+                    LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
+                    ll1.setVisibility(View.INVISIBLE);
+                    ll2.setVisibility(View.INVISIBLE);
+                    llStar.setVisibility(View.INVISIBLE);
+                    //停止计时
+                    flag = 2;//不是1不是0，无论上下滑都不计时了
+                    tempTime = SystemClock.elapsedRealtime()-tick.getBase();
+                    tick.stop();
+                    tick.setBase(SystemClock.elapsedRealtime());
+                    tick.setVisibility(View.INVISIBLE);
+                    return;
+                }
+                //recycle小于4的时候
+                integers = GetRandomNum.getIntegers(recycleList.size(), recycleList.size());
+                //size个选项随机选取一个作为正确答案
+                rightIndex = GetRandomNum.getOneInt(recycleList.size());
+                //四个中的rightIndex作为spell
+                spell.setText(recycleList.get(integers[rightIndex]).getWord().getSpell());
+                //发音（英式美式等,不全）
+                if (recycleList.get(integers[rightIndex]).getWord().getAudio().size() != 0)
+                    voice.setText(recycleList.get(integers[rightIndex]).getWord().getAudio().get(0).getTagDetail());
+                else voice.setText("");
+                //选项赋值
+                for (int i = 0; i < recycleList.size(); i++) {
+                    items[i].setText(recycleList.get(integers[i]).getWord().getClearfix().get(0).getClearfix());
+                }
+                for (int i = 0; i < 4 - recycleList.size(); i++) {
+                    items[3 - i].setText("");
+                }
+        }
         //点之前刷新星星
-        ///替换、list顺序问题。omg，fuck，替换后还要把星星设置为0哦~~
         refreshStar(greStar[someOfTotal[integers[rightIndex]]],redStar[someOfTotal[integers[rightIndex]]]);
         //点击选项
+        int finalRightIndex = rightIndex;
+        Integer[] finalIntegers = integers;
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(v.getId()==items[rightIndex].getId())
+                if(v.getId()==items[finalRightIndex].getId())
                 {
-                    v.setBackgroundResource(R.drawable.shape_9);
-                    items[rightIndex].setTextColor(getResources().getColor(R.color.teal_200));
-                    for (int i = 0; i < 4; i++) {
-                        if(rightIndex!=i) items[i].setTextColor(0xFFD4D6D8);//灰色
+                    if(recycleList.size()==0)
+                    {
+                        spell.setText("今日任务已完成");
+                        try {
+                            summit(data);//提交数据
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
+                        }
+                        for (int i = 0; i < 4; i++) {
+                            items[i].setText("");
+                            items[i].setVisibility(View.INVISIBLE);
+                        }
+                        LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
+                        LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
+                        LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
+                        ll1.setVisibility(View.INVISIBLE);
+                        ll2.setVisibility(View.INVISIBLE);
+                        llStar.setVisibility(View.INVISIBLE);
+                        //停止计时
+                        flag = 2;//不是1不是0，无论上下滑都不计时了
+                        tempTime = SystemClock.elapsedRealtime()-tick.getBase();
+                        tick.stop();
+                        tick.setBase(SystemClock.elapsedRealtime());
+                        tick.setVisibility(View.INVISIBLE);
+                        return;
                     }
-                    //选对,绿星加一
-                    if(greStar[someOfTotal[integers[rightIndex]]]+redStar[someOfTotal[integers[rightIndex]]]<5
-                            &&greStar[someOfTotal[integers[rightIndex]]]<3)
-                        greStar[someOfTotal[integers[rightIndex]]]+=1;
+                    else
+                    {
+                        v.setBackgroundResource(R.drawable.shape_9);
+                        items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
+                        for (int i = 0; i < 4; i++) {
+                            if(finalRightIndex !=i) items[i].setTextColor(0xFFD4D6D8);//灰色
+                        }
+                        //选对,绿星加一
+                        if(greStar[someOfTotal[finalIntegers[finalRightIndex]]]+redStar[someOfTotal[finalIntegers[finalRightIndex]]]<5
+                                &&greStar[someOfTotal[finalIntegers[finalRightIndex]]]<3)
+                            greStar[someOfTotal[finalIntegers[finalRightIndex]]]+=1;
+
+                    }
+
                 }
                 else
                 {
@@ -416,50 +559,95 @@ public class MainActivity extends AppCompatActivity {
                     {
                         //收藏和无需再背
                         case R.id.yes:
-                            items[rightIndex].setTextColor(getResources().getColor(R.color.teal_200));
+                            items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
                             //把totalList的该单词tag设置为1,无需再背
-                            totalList.get(someOfTotal[integers[rightIndex]]).setTag(1);
+                            WordList.DataDTO ddt = totalList.get(someOfTotal[finalIntegers[finalRightIndex]]);
+                            //构建提交数据
+                            RequestData.WordRecordDTO wrd=new RequestData.WordRecordDTO(ddt.getId(),1,
+                                    ddt.getTimesReview(),ddt.getDifficult(),String.valueOf(new Date().getTime()));
+                            wrdList.add(wrd);
                             //已经掌握，就移除
                             if(tempTotalList.size()!=0)
                             {
                                 //tempTotalList还有
-                                recycleList.set(integers[rightIndex],tempTotalList.get(0));
-                                greStar[someOfTotal[integers[rightIndex]]] = 0;redStar[someOfTotal[integers[rightIndex]]] = 0;
+                                recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
+                                greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
                                 tempTotalList.remove(tempTotalList.get(0));
                             }
                             else
                             {
                                 //tempTotalList已经全被加进Recycle了，就recycle-1
-                                recycleList.remove(recycleList.get(integers[rightIndex]));
+                                recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
                                 Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
                             }
 
                             Toast.makeText(MainActivity.this, "掌握+1", Toast.LENGTH_SHORT).show();
                             break;
                         case R.id.no:
-                            items[rightIndex].setTextColor(getResources().getColor(R.color.teal_200));
-                            //把totalList的该单词tag设置为4,手动收藏，但还是会在recycleList里循环背诵
-                            if(totalList.get(someOfTotal[integers[rightIndex]]).getTag()==4)
-                            Toast.makeText(MainActivity.this, "已收藏", Toast.LENGTH_SHORT).show();
+                            items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
+                            WordList.DataDTO ddt_ = totalList.get(someOfTotal[finalIntegers[finalRightIndex]]);
+                            //构建提交数据
+                            RequestData.WordRecordDTO wrd_=new RequestData.WordRecordDTO(ddt_.getId(),4,
+                                    ddt_.getTimesReview(),ddt_.getDifficult(),String.valueOf(new Date().getTime()));
+                            wrdList.add(wrd_);
+                            //已经收藏，就移除
+                            if(tempTotalList.size()!=0)
+                            {
+                                //tempTotalList还有
+                                recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
+                                greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                                tempTotalList.remove(tempTotalList.get(0));
+                            }
                             else
                             {
-                                //避免重复收藏
-                                totalList.get(someOfTotal[integers[rightIndex]]).setTag(4);
-                                Toast.makeText(MainActivity.this, "收藏+1", Toast.LENGTH_SHORT).show();
+                                //tempTotalList已经全被加进Recycle了，就recycle-1
+                                recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
+                                Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
                             }
+                            Toast.makeText(MainActivity.this, "收藏+1", Toast.LENGTH_SHORT).show();
                             break;
                         //其它三个选项
                         default:
-                            v.setBackgroundResource(R.drawable.shape_10);
-                            items[rightIndex].setBackgroundResource(R.drawable.shape_9);
-                            items[rightIndex].setTextColor(getResources().getColor(R.color.teal_200));
-                            for (int i = 0; i < 4; i++) {
-                                if(rightIndex!=i) items[i].setTextColor(0xFFD4D6D8);//灰色
+                            if(recycleList.size()==0)
+                            {
+                                spell.setText("今日任务已完成");
+                                try {
+                                    summit(data);//提交数据
+                                } catch (GeneralSecurityException | IOException e) {
+                                    e.printStackTrace();
+                                }
+                                for (int i = 0; i < 4; i++) {
+                                    items[i].setText("");
+                                    items[i].setVisibility(View.INVISIBLE);
+                                }
+                                LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
+                                LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
+                                LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
+                                ll1.setVisibility(View.INVISIBLE);
+                                ll2.setVisibility(View.INVISIBLE);
+                                llStar.setVisibility(View.INVISIBLE);
+                                //停止计时
+                                flag = 2;//不是1不是0，无论上下滑都不计时了
+                                tempTime = SystemClock.elapsedRealtime()-tick.getBase();
+                                tick.stop();
+                                tick.setBase(SystemClock.elapsedRealtime());
+                                tick.setVisibility(View.INVISIBLE);
+                                return;
                             }
-                            //选错,红星加一
-                            if(greStar[someOfTotal[integers[rightIndex]]]+redStar[someOfTotal[integers[rightIndex]]]<5
-                                    &&redStar[someOfTotal[integers[rightIndex]]]<3)
-                                redStar[someOfTotal[integers[rightIndex]]]+=1;
+                            else
+                            {
+                                v.setBackgroundResource(R.drawable.shape_10);
+                                items[finalRightIndex].setBackgroundResource(R.drawable.shape_9);
+                                items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
+                                for (int i = 0; i < 4; i++) {
+                                    if(finalRightIndex !=i) items[i].setTextColor(0xFFD4D6D8);//灰色
+                                }
+                                //选错,红星加一
+                                if(greStar[someOfTotal[finalIntegers[finalRightIndex]]]+redStar[someOfTotal[finalIntegers[finalRightIndex]]]<5
+                                        &&redStar[someOfTotal[finalIntegers[finalRightIndex]]]<3)
+                                    redStar[someOfTotal[finalIntegers[finalRightIndex]]]+=1;
+                            }
+
                             break;
                     }
 
@@ -467,43 +655,60 @@ public class MainActivity extends AppCompatActivity {
 
                 }
                 //刷新星星
-                refreshStar(greStar[someOfTotal[integers[rightIndex]]],redStar[someOfTotal[integers[rightIndex]]]);
-
+                refreshStar(greStar[someOfTotal[finalIntegers[finalRightIndex]]],redStar[someOfTotal[finalIntegers[finalRightIndex]]]);
                 //保存星星数组到本地，每日更新
                 //···
                 //···这里由于星星数据还没写手机和手表同步的接口，代码搁置在这
                 //···
-
                 //满三颗星就刷新recycleList,从tempTotalList添加，从tempTotalList减一
-                if(greStar[someOfTotal[integers[rightIndex]]]==3)
+                if(greStar[someOfTotal[finalIntegers[finalRightIndex]]]==3)
                 {
-                    //把totalList的该单词tag设置为2
-                    totalList.get(someOfTotal[integers[rightIndex]]).setTag(2);
-                    //从tempTotalList拿一个生词替换recycleList中这个位置的单词，并把这个单词星星数归0
-                    recycleList.set(integers[rightIndex],tempTotalList.get(0));
-                    greStar[someOfTotal[integers[rightIndex]]] = 0;redStar[someOfTotal[integers[rightIndex]]] = 0;
-                    tempTotalList.remove(tempTotalList.get(0));
+                    //把totalList的该单词tag设置为2，相当于记住
+                    WordList.DataDTO ddt = totalList.get(someOfTotal[finalIntegers[finalRightIndex]]);
+                    //构建提交数据
+                    RequestData.WordRecordDTO wrd=new RequestData.WordRecordDTO(ddt.getId(),2,
+                            ddt.getTimesReview(),ddt.getDifficult(),String.valueOf(new Date().getTime()));
+                    wrdList.add(wrd);
+                        //从tempTotalList拿一个生词替换recycleList中这个位置的单词，并把这个单词星星数归0
+                    if(tempTotalList.size()!=0)
+                    {
+                        //tempTotalList还有
+                        recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
+                        greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                        tempTotalList.remove(tempTotalList.get(0));
+                    }
+                    else
+                    {
+                        //tempTotalList已经全被加进Recycle了，就recycle-1
+                        recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
+                        Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
+                    }
+
                 }
-                if(redStar[someOfTotal[integers[rightIndex]]]==3)
+                if(redStar[someOfTotal[finalIntegers[finalRightIndex]]]==3)
                 {
                     //把totalList的该单词tag设置为3，相当于加入(自动)收藏
-                    totalList.get(someOfTotal[integers[rightIndex]]).setTag(3);
+                    WordList.DataDTO ddt = totalList.get(someOfTotal[finalIntegers[finalRightIndex]]);
+                    //构建提交数据
+                    RequestData.WordRecordDTO wrd=new RequestData.WordRecordDTO(ddt.getId(),3,
+                            ddt.getTimesReview(),ddt.getDifficult(),String.valueOf(new Date().getTime()));
+                    wrdList.add(wrd);
                     //从tempTotalList拿一个生词替换recycleList中这个位置的单词
-                    recycleList.set(integers[rightIndex],tempTotalList.get(0));
-                    greStar[someOfTotal[integers[rightIndex]]] = 0;redStar[someOfTotal[integers[rightIndex]]] = 0;
-                    tempTotalList.remove(tempTotalList.get(0));
-                    Log.d("MainActivity", "here");
+                    if(tempTotalList.size()!=0)
+                    {
+                        //tempTotalList还有
+                        recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
+                        greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                        tempTotalList.remove(tempTotalList.get(0));
+                    }
+                    else
+                    {
+                        //tempTotalList已经全被加进Recycle了，就recycle-1
+                        recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
+                        Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
+                    }
                 }
 
-//                    //更新本地的wordList
-//                    Gson gson = new Gson();
-//                    String jsonStr = gson.toJson(temp);
-//                    try {
-//                        SecuritySP.EncryptSP(MainActivity.this,"todayWords",jsonStr);
-//
-//                    } catch (GeneralSecurityException | IOException e) {
-//                        e.printStackTrace();
-//                    }
                 //点击一秒(供用户查看)后刷新选项,这个期间要禁止点击
                 item1.setEnabled(false);item2.setEnabled(false);
                 item3.setEnabled(false);item4.setEnabled(false);
@@ -517,7 +722,11 @@ public class MainActivity extends AppCompatActivity {
                         item4.setEnabled(true);item4.setBackgroundResource(R.drawable.shape_7);
                         item1.setTextColor(0xFF717274);item2.setTextColor(0xFF717274);//设置回系统默认颜色
                         item3.setTextColor(0xFF717274);item4.setTextColor(0xFF717274);
-                        reciteProcess();
+                        try {
+                            reciteProcess();
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
+                        }
                         Log.d("MainActivity", "tempTotalList.size():" + String.valueOf(tempTotalList.size()));
                     }
                 },1500);
@@ -535,8 +744,6 @@ public class MainActivity extends AppCompatActivity {
     //显示和刷新星星数目
     private void refreshStar(int greStarNum,int redStarNum)
     {
-        Log.d("MainActivity", "greStarNum:" + greStarNum);
-        Log.d("MainActivity", "redStarNum:" + redStarNum);
         ImageView[] ivStars = new ImageView[5];
         ivStars[0] = (ImageView)findViewById(R.id.star1);
         ivStars[1] = (ImageView)findViewById(R.id.star2);
@@ -581,11 +788,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //结束背单词，提交背诵数据
-    private void endRecite()
-    {
+    private void summit(RequestData data) throws GeneralSecurityException, IOException {
+        Gson gson = new Gson();
+        String jsonStr= gson.toJson(data);
+        String token = SecuritySP.DecryptSP(this,"token");
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonStr);
+        GetNetService.GetApiService().summitData(token,requestBody)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new rx.Observer<ResponseBody>() {
+                    @Override
+                    public void onCompleted() {
 
+                    }
 
+                    @Override
+                    public void onError(Throwable e) {
+                        Toast.makeText(MainActivity.this, "summit onError", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onNext(ResponseBody responseBody) {
+                        try {
+                            JsonObject jsonObject = JsonParser.parseString(responseBody.string()).getAsJsonObject();
+                            int state = jsonObject.get("state").getAsInt();
+//                            Toast.makeText(MainActivity.this, "state:" + state, Toast.LENGTH_SHORT).show();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
     }
-
-
 }

@@ -15,7 +15,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl"
-        android:background="@color/bar"
+        android:background="@color/back"
         android:animateLayoutChanges="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">

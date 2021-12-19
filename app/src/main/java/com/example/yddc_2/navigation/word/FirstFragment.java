@@ -25,7 +25,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yddc_2.MainActivity;
@@ -34,8 +36,10 @@ import com.example.yddc_2.bean.Setting;
 import com.example.yddc_2.bean.WordList;
 import com.example.yddc_2.databinding.FirstFragmentBinding;
 import com.example.yddc_2.utils.GetNetService;
+import com.example.yddc_2.utils.PressAnimUtil;
 import com.example.yddc_2.utils.SecuritySP;
 import com.example.yddc_2.viewmodels.MainViewModel;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -71,8 +75,8 @@ public class FirstFragment extends Fragment {
     public static int num = 0;//单词本单词数
     public static Setting set;
     private LineChartView lineChart;
-    String[] date = {"10-22","11-22","12-22","1-22","6-22","5-23","5-22","6-22","5-23","5-22"};//X轴的标注
-    int[] score= {50,42,90,33,10,74,22,18,79,20};//图表的数据点
+    String[] date = {"0-2","2-4","4-6","6-8","8-10","10-12","12-14","14-16","16-18","18-20","20-22","22-24"};//X轴的标注
+    int[] score= {0,0,5,23,10,54,22,18,0,20,12,0};//图表的数据点
     private List<PointValue> mPointValues = new ArrayList<>();
     private List<AxisValue> mAxisXValues = new ArrayList<>();
     private LocalBroadcastManager broadcastManager;//定义一个广播管理器
@@ -92,6 +96,7 @@ public class FirstFragment extends Fragment {
         } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();
         }
+        initView();
         return binding.getRoot();
     }
 
@@ -123,7 +128,12 @@ public class FirstFragment extends Fragment {
         intentFilter.addAction("initSetting");//说白了都是些暗号罢了
         broadcastManager.registerReceiver(mAdDownLoadReceiver, intentFilter);
     }
-
+    //Detach时注销广播
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        broadcastManager.unregisterReceiver(mAdDownLoadReceiver);
+    }
     //FirstFragment里initSetting的同时加载词库iniTodayWords()
     private void initSettings() throws GeneralSecurityException, IOException {
         com.shawnlin.numberpicker.NumberPicker list = binding.list;
@@ -176,8 +186,11 @@ public class FirstFragment extends Fragment {
                                             nl.setValue(setting.getData().getNumOfList());
                                             num = jsonObject.get("data").getAsJsonObject().get("num").getAsInt();
                                             int d = (int)(num/(setting.getData().getList()*setting.getData().getNumOfList()));
-                                            if(d>=200) day.setMaxValue(d);
+                                            day.setMaxValue(Math.max(d, 200));
                                             day.setValue(d);
+                                            //更新bottom上的当前词汇tag显示
+                                            TextView tag = (TextView) requireActivity().findViewById(R.id.tag);
+                                            tag.setText(set.getData().getTag());
                                         }
                                         else Toast.makeText(getContext(), "getNumOfBook:state:" + state, Toast.LENGTH_SHORT).show();
                                     } catch (IOException e) {
@@ -195,7 +208,9 @@ public class FirstFragment extends Fragment {
                 //它俩乘积最大为100，后端只返回最多100条
                 if(list.getValue()*nl.getValue()>=100) nl.setMaxValue(100/list.getValue());
                 else nl.setMaxValue(20);
-                day.setValue((int)(num/(list.getValue()*nl.getValue())));
+                int d = (int)(num/(list.getValue()*nl.getValue()));
+                day.setMaxValue(Math.max(d, 200));
+                day.setValue(d);
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -212,7 +227,9 @@ public class FirstFragment extends Fragment {
                 //它俩乘积最大为100，后端只返回最多100条
                 if(list.getValue()*nl.getValue()>=100) list.setMaxValue(100/nl.getValue());
                 else list.setMaxValue(20);
-                day.setValue((int)(num/(list.getValue()*nl.getValue())));
+                int d = (int)(num/(list.getValue()*nl.getValue()));
+                day.setMaxValue(Math.max(d, 200));
+                day.setValue(d);
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -295,17 +312,24 @@ public class FirstFragment extends Fragment {
                 });
     }
 
+    private void initView()
+    {
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BottomSheetBehavior<LinearLayout> bottomSheetBehavior = BottomSheetBehavior.from(requireActivity().findViewById(R.id.bottom_sheet_layout));
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+        };
+        PressAnimUtil.addScaleAnimition(binding.task1,listener,0.8f);
+        PressAnimUtil.addScaleAnimition(binding.task2,listener,0.8f);
 
-
-
-
-
-    //Detach时注销广播
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        broadcastManager.unregisterReceiver(mAdDownLoadReceiver);
     }
+
+
+
+
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -326,47 +350,39 @@ public class FirstFragment extends Fragment {
 
             Line line = new Line(mPointValues).setColor(Color.parseColor("#FFCD41"));  //折线的颜色（橙色）
             List<Line> lines = new ArrayList<Line>();
-            line.setShape(ValueShape.DIAMOND);//折线图上每个数据点的形状  这里是圆形 （有三种 ：ValueShape.SQUARE  ValueShape.CIRCLE  ValueShape.DIAMOND）
-            line.setCubic(false);//曲线是否平滑，即是曲线还是折线
-            line.setFilled(false);//是否填充曲线的面积
-            line.setHasLabels(true);//曲线的数据坐标是否加上备注
-//      line.setHasLabelsOnlyForSelected(true);//点击数据坐标提示数据（设置了这个line.setHasLabels(true);就无效）
+            line.setShape(ValueShape.CIRCLE);//折线图上每个数据点的形状  这里是圆形 （有三种 ：ValueShape.SQUARE  ValueShape.CIRCLE  ValueShape.DIAMOND）
+            line.setCubic(true);//曲线是否平滑，即是曲线还是折线
+            line.setFilled(true);//是否填充曲线的面积
+//            line.setHasLabels(true);//曲线的数据坐标是否加上备注
+      line.setHasLabelsOnlyForSelected(true);//点击数据坐标提示数据（设置了这个line.setHasLabels(true);就无效）
             line.setHasLines(true);//是否用线显示。如果为false 则没有曲线只有点显示
-            line.setHasPoints(true);//是否显示圆点 如果为false 则没有原点只有点显示（每个数据点都是个大的圆点）
+            line.setHasPoints(true);//是否显示圆点 如果为false 则没有原点只有点显示（每个数据点都是个大的圆点
             lines.add(line);
             LineChartData data = new LineChartData();
             data.setLines(lines);
             //坐标轴
             Axis axisX = new Axis(); //X轴
+            axisX.setName("时间周期");
             axisX.setHasTiltedLabels(false);  //X坐标轴字体是斜的显示还是直的，true是斜的显示
-            axisX.setTextColor(Color.BLUE);  //设置字体颜色
-            //axisX.setName("date");  //x轴名称
+            axisX.setTextColor(Color.GRAY);  //设置字体颜色
             axisX.setTextSize(10);//设置字体大小
-            axisX.setMaxLabelChars(8); //最多几个X轴坐标，意思就是你的缩放让X轴上数据的个数7<=x<=mAxisXValues.length
+            axisX.setMaxLabelChars(12); //最多几个X轴坐标，意思就是你的缩放让X轴上数据的个数
             axisX.setValues(mAxisXValues);  //填充X轴的坐标名称
             data.setAxisXBottom(axisX); //x 轴在底部
-            //data.setAxisXTop(axisX);  //x 轴在顶部
             axisX.setHasLines(true); //x 轴分割线
-            // Y轴是根据数据的大小自动设置Y轴上限(在下面我会给出固定Y轴数据个数的解决方案)
             Axis axisY = new Axis();  //Y轴
-            axisY.setName("test");//y轴标注
+            axisY.setName("单词个数");//y轴标注
             axisY.setTextSize(10);//设置字体大小
+        axisY.setTextColor(Color.GRAY);
             data.setAxisYLeft(axisY);  //Y轴设置在左边
-            //data.setAxisYRight(axisY);  //y轴设置在右边
-            //设置行为属性，支持缩放、滑动以及平移
+        data.setValueLabelBackgroundEnabled(true);
+//            设置行为属性，支持缩放、滑动以及平移
             lineChart.setInteractive(true);
             lineChart.setZoomType(ZoomType.VERTICAL);
             lineChart.setMaxZoom((float) 2);//最大方法比例
-            lineChart.setContainerScrollEnabled(false, ContainerScrollType.HORIZONTAL);
+            lineChart.setContainerScrollEnabled(false, ContainerScrollType.VERTICAL);
             lineChart.setLineChartData(data);
             lineChart.setVisibility(View.VISIBLE);
-            /**注：下面的7，10只是代表一个数字去类比而已
-             * 当时是为了解决X轴固定数据个数。见（http://forum.xda-developers.com/tools/programming/library-hellocharts-charting-library-t2904456/page2）;
-             */
-            Viewport v = new Viewport(lineChart.getMaximumViewport());
-            v.left = 0;
-            v.right= 7;
-            lineChart.setCurrentViewport(v);
         }
     /**
      * 设置X 轴的显示

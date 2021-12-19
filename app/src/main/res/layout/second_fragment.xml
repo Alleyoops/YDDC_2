@@ -26,14 +26,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
         </androidx.appcompat.widget.Toolbar>
+        <androidx.cardview.widget.CardView
+            android:layout_marginHorizontal="30dp"
+            android:layout_marginVertical="10dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="0dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.youth.banner.Banner
+                android:id="@+id/banner"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"/>
+        </androidx.cardview.widget.CardView>
 
         <ImageView
             android:id="@+id/dayView"
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:adjustViewBounds="true"
-            android:layout_marginTop="20dp"
             android:layout_marginHorizontal="30dp" />
 
         <TextView

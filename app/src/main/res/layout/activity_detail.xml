@@ -16,7 +16,7 @@
             android:id="@+id/toolbar_result"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@color/bar"
+            android:background="@color/back"
             app:title="账号信息"
             app:titleTextColor="@color/black"
             app:navigationIcon="@drawable/ic_back_24"/>

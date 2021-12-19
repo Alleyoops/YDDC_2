@@ -75,7 +75,7 @@
                         android:onClick="@{handler.onClickView2}"
                         android:scaleType="fitXY"
                         android:src="@drawable/ic_head"
-                        app:border_color="@color/bar"
+                        app:border_color="@color/back"
                         app:border_width="5dp" />
 
 
@@ -266,8 +266,8 @@
                             android:layout_alignParentEnd="true"
                             app:arrowTint="@color/teal_200"
                             android:text="未选"
-                            android:background="@color/bar"
-                            android:backgroundTint="@color/bar"
+                            android:background="@color/back"
+                            android:backgroundTint="@color/back"
                             android:spinnerMode="dropdown" />
                 </RelativeLayout>
 
@@ -290,7 +290,7 @@
                         android:layout_height="match_parent"
                         android:layout_alignParentEnd="true"
                         app:arrowTint="@color/teal_200"
-                        android:backgroundTint="@color/bar"
+                        android:backgroundTint="@color/back"
                         android:spinnerMode="dropdown"/>
                 </RelativeLayout>
 
@@ -357,16 +357,17 @@
             android:layout_marginTop="5dp"
             android:layout_marginStart="30dp"/>
         <ImageView
+            android:id="@+id/iv_scan"
             android:layout_width="26dp"
             android:layout_height="30dp"
             android:layout_marginTop="5dp"
             android:layout_marginEnd="10dp"
-            android:layout_toStartOf="@+id/iv1"
+            android:layout_toStartOf="@+id/iv_setting"
             android:elevation="2dp"
             android:src="@drawable/ic_scan" />
 
         <ImageView
-            android:id="@+id/iv1"
+            android:id="@+id/iv_setting"
             android:layout_width="25dp"
             android:layout_height="30dp"
             android:layout_alignParentEnd="true"

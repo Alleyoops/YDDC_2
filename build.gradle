@@ -3,6 +3,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven {url 'http://developer.huawei.com/repo/'}
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.2.1"
@@ -17,8 +18,10 @@ allprojects {
         google()
         mavenCentral()
         jcenter() // Warning: this repository is going to shut down soon
+        maven { url 'http://developer.huawei.com/repo/'}
     }
 }
+
 
 task clean(type: Delete) {
     delete rootProject.buildDir

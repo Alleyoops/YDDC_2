@@ -2,12 +2,13 @@
     android:layout_width="match_parent"
     android:layout_height="50dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/bar"
+    android:background="@color/back"
     android:orientation="horizontal">
 
 
     <SearchView
         android:id="@+id/searchView"
+        android:focusable="false"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginRight="40dp"

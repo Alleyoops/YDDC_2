@@ -8,7 +8,9 @@ import com.example.yddc_2.bean.WordList;
 import java.util.Map;
 
 import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
@@ -19,6 +21,7 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.QueryMap;
 import rx.Observable;
 
 public interface APIService {
@@ -73,4 +76,10 @@ public interface APIService {
 
     @GET("/word/queryNumByTag")//获取单词本的总数
     Observable<ResponseBody> getNumOfBook(@Query("tag") String tag);
+
+    @POST("user/postdata")//提交背诵数据
+    Observable<ResponseBody> summitData(@Header("token") String token, @Body RequestBody data);
+
+    @GET("/word/queryAll")//查单词
+    Observable<ResponseBody> queryWord(@QueryMap Map<String,Object> query);
 }

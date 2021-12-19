@@ -100,6 +100,7 @@ public class ThirdFragment extends Fragment{
         } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();
         }
+        scan();
         updateHead_Back();
         return binding.getRoot();
     }
@@ -140,7 +141,31 @@ public class ThirdFragment extends Fragment{
                 }
                 else spWordBook.setSelectedIndex(list.indexOf(tag));//否则勾选相应选项
                 if(watch==1) sbWatch.setChecked(true);
+                sbWatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if(isChecked) watch = 1;
+                        else watch = 0;
+                        try {
+                            updateSetting(tag,watch,phone,false);
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
                 if(phone==1) sbPhone.setChecked(true);
+                sbPhone.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if(isChecked) phone = 1;
+                        else phone = 0;
+                        try {
+                            updateSetting(tag,watch,phone,false);
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         });
 
@@ -169,31 +194,9 @@ public class ThirdFragment extends Fragment{
             }
         });
 
-        sbWatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) watch = 1;
-                else watch = 0;
-                try {
-                    updateSetting(tag,watch,phone,false);
-                } catch (GeneralSecurityException | IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
 
-        sbPhone.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) phone = 1;
-                else phone = 0;
-                try {
-                    updateSetting(tag,watch,phone,false);
-                } catch (GeneralSecurityException | IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+
+
 
     }
 
@@ -205,6 +208,7 @@ public class ThirdFragment extends Fragment{
         settingMap.put("watRem",watch);
         settingMap.put("phoRem",phone);
         settingMap.put("circWay", 0);
+        Log.d("ThirdFragment", "settingMap:" + settingMap);
         GetNetService.GetApiService().updateSetting(token,settingMap)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -234,10 +238,6 @@ public class ThirdFragment extends Fragment{
                                     Calendar calendar = Calendar.getInstance();
                                     int dayOfWord = calendar.get(Calendar.DAY_OF_MONTH);
                                     SecuritySP.EncryptSP(getContext(),"day",String.valueOf(dayOfWord-1));
-                                    //重新initWords
-                                    MainActivity mainActivity = (MainActivity)getActivity();
-                                    assert mainActivity != null;
-                                    mainActivity.iniTodayWords();
                                 }
                             }
                         } catch (Exception e) {
@@ -335,7 +335,7 @@ public class ThirdFragment extends Fragment{
                 builder.setView(view);
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
-                alertDialog.getWindow().setBackgroundDrawableResource(R.drawable.shape_2);
+                alertDialog.getWindow().setBackgroundDrawableResource(R.drawable.shape_8);
                 alertDialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
                 TextView tv_chd = (TextView)alertDialog.getWindow().findViewById(R.id.tv_chd);
                 TextView tv_cbk = (TextView)alertDialog.getWindow().findViewById(R.id.tv_cbk);
@@ -455,6 +455,17 @@ public class ThirdFragment extends Fragment{
                     }
                 });
 
+    }
+    private void scan()
+    {
+        binding.ivScan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity activity = (MainActivity)getActivity();
+                assert activity != null;
+                activity.loadScanKitBtnClick(v);
+            }
+        });
     }
 
 }
