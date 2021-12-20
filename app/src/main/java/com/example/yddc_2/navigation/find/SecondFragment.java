@@ -81,7 +81,7 @@ public class SecondFragment extends Fragment implements OnBannerListener {
                 {
                     textView.setText(daySentence.getNewslist().get(0).getContent());
                     //Glide 加载图片简单用法
-                    RoundedCorners roundedCorners = new RoundedCorners(40);//数字为圆角度数
+                    RoundedCorners roundedCorners = new RoundedCorners(80);//数字为圆角度数
                     RequestOptions coverRequestOptions = new RequestOptions()
                             .transforms(new FitCenter(), roundedCorners)
                             .diskCacheStrategy(DiskCacheStrategy.NONE)//不做磁盘缓存
@@ -128,7 +128,7 @@ public class SecondFragment extends Fragment implements OnBannerListener {
         //设置图片加载器
         mBanner.setImageLoader(mMyImageLoader);
         //设置轮播的动画效果,里面有很多种特效,可以都看看效果。
-        mBanner.setBannerAnimation(Transformer.FlipHorizontal);
+        mBanner.setBannerAnimation(Transformer.Tablet);
         //轮播图片的文字
         mBanner.setBannerTitles(imageTitle);
         //设置轮播间隔时间
