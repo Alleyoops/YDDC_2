@@ -11,7 +11,6 @@ import androidx.viewpager.widget.ViewPager;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -363,37 +362,26 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         String today = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
         if(!today.equals(SecuritySP.DecryptSP(MainActivity.this,"day")))
         {
-            viewModel.getmWordList(this).observe(this, new Observer<WordList>() {
-                @Override
-                public void onChanged(WordList wordList) {
-                    try {
-                        //更新日期
-                        Calendar calendar = Calendar.getInstance();
-                        int dayOfWord = calendar.get(Calendar.DAY_OF_MONTH);
-                        SecuritySP.EncryptSP(MainActivity.this,"day",String.valueOf(dayOfWord));
-                        Gson gson = new Gson();
-                        String jsonStr = gson.toJson(wordList);
-                        SecuritySP.EncryptSP(MainActivity.this,"todayWords",jsonStr);
-                        Toast.makeText(MainActivity.this, "词库更新", Toast.LENGTH_SHORT).show();
-                        //放进一个可以方便增删的list
-                        totalList = gson.fromJson(jsonStr,WordList.class).getData();
-                        reciteOfWork();
-                    } catch (GeneralSecurityException | IOException e) {
-                        e.printStackTrace();
-                    }
+            //更新日期
+            int dayOfWord = calendar.get(Calendar.DAY_OF_MONTH);
+            SecuritySP.EncryptSP(MainActivity.this,"day",String.valueOf(dayOfWord));
+        }
+        viewModel.getmWordList(this).observe(this, new Observer<WordList>() {
+            @Override
+            public void onChanged(WordList wordList) {
+                try {
+                    Gson gson = new Gson();
+                    String jsonStr = gson.toJson(wordList);
+                    SecuritySP.EncryptSP(MainActivity.this,"todayWords",jsonStr);
+                    Toast.makeText(MainActivity.this, "词库更新", Toast.LENGTH_SHORT).show();
+                    //放进一个可以方便增删的list
+                    totalList = gson.fromJson(jsonStr,WordList.class).getData();
+                    reciteOfWork();
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
                 }
-            });
-        }
-        else
-        {
-            //从本地取出todayWords
-            String jsonStr = SecuritySP.DecryptSP(MainActivity.this,"todayWords");
-            Gson gson = new Gson();
-            //放进一个可以方便增删的list
-            totalList = gson.fromJson(jsonStr,WordList.class).getData();
-            reciteOfWork();
-            Toast.makeText(this, "读取缓存词库", Toast.LENGTH_SHORT).show();
-        }
+            }
+        });
     }
 
     //背单词之任务模式（默认模式）
@@ -463,16 +451,19 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         else {
                 if(recycleList.size()==0)
                 {
+                    LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
+                    LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
+                    LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
+
                     spell.setText("今日任务已完成");
+                    TextView continue_go = (TextView)findViewById(R.id.btn);
+                    continue_go.setVisibility(View.VISIBLE);
                     summit(data);//提交数据
                     for (int i = 0; i < 4; i++) {
                         items[i].setText("");
                         items[i].setVisibility(View.INVISIBLE);
                     }
                     voice.setVisibility(View.INVISIBLE);
-                    LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
-                    LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
-                    LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
                     ll1.setVisibility(View.INVISIBLE);
                     ll2.setVisibility(View.INVISIBLE);
                     llStar.setVisibility(View.INVISIBLE);
@@ -482,6 +473,29 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                     tick.stop();
                     tick.setBase(SystemClock.elapsedRealtime());
                     tick.setVisibility(View.INVISIBLE);
+
+                    PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            try {
+                                iniTodayWords();
+                                for (int i = 0; i < 4; i++) {
+                                    items[i].setText("");
+                                    items[i].setVisibility(View.VISIBLE);
+                                }
+                                voice.setVisibility(View.VISIBLE);
+                                ll1.setVisibility(View.VISIBLE);
+                                ll2.setVisibility(View.VISIBLE);
+                                llStar.setVisibility(View.VISIBLE);
+                                tick.setVisibility(View.VISIBLE);
+                                reciteOfWork();
+                                tick.start();
+                            } catch (GeneralSecurityException | IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    },0.8f);
+
                     return;
                 }
                 //recycle小于4的时候

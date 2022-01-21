@@ -116,7 +116,6 @@
                         android:orientation="vertical"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
-
                         <Chronometer
                             android:id="@+id/tick"
                             android:textStyle="bold"
@@ -124,7 +123,7 @@
                             android:layout_marginHorizontal="20dp"
                             android:layout_marginTop="10dp"
                             android:textColor="@color/item"
-                            android:layout_width="match_parent"
+                            android:layout_width="100dp"
                             android:layout_height="wrap_content" />
 
                         <View
@@ -200,7 +199,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:layout_height="100dp" />
+                            android:layout_height="80dp" />
 
                         <TextView
                             android:id="@+id/item1"
@@ -257,10 +256,19 @@
                             android:layout_marginHorizontal="40dp"
                             android:background="@drawable/shape_7"
                             android:text="v.中文意思" />
+                            <TextView
+                                android:id="@+id/btn"
+                                android:visibility="invisible"
+                                android:layout_width="100dp"
+                                android:text="继续挑战"
+                                android:layout_margin="2dp"
+                                android:background="@drawable/shape_1"
+                                android:gravity="center"
+                                android:layout_gravity="center"
+                                android:layout_height="36dp"/>
                     </LinearLayout>
                     <LinearLayout
                         android:id="@+id/ll_1"
-                        android:layout_marginTop="40dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
                         <View
