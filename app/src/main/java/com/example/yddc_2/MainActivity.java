@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -21,16 +22,19 @@ import android.view.View;
 import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yddc_2.adapter.ViewPagerAdapter;
 import com.example.yddc_2.bean.RequestData;
 import com.example.yddc_2.bean.Setting;
+import com.example.yddc_2.bean.Star;
 import com.example.yddc_2.bean.WordList;
 import com.example.yddc_2.navigation.find.SecondFragment;
 import com.example.yddc_2.navigation.me.ThirdFragment;
 import com.example.yddc_2.navigation.word.FirstFragment;
+import com.example.yddc_2.utils.ClearArray;
 import com.example.yddc_2.utils.GetNetService;
 import com.example.yddc_2.utils.GetRandomNum;
 import com.example.yddc_2.utils.HideBar;
@@ -53,7 +57,11 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.sql.StatementEvent;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -70,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
     public static List<WordList.DataDTO> recycleList;//大小为10,保存每次背诵时循环的十个单词
     //保存一个list中单词个数的随机数的数组(nol)
     public static Integer[] someOfTotal = new Integer[100];//max50
+    //用来保存单词所对应的绿星和红星的数目
+    Map<WordList.DataDTO, Star> map = new HashMap<WordList.DataDTO, Star>();
     //定义一个保存绿星和红星个数的数组
     public static int[] greStar = new int[100];//max100
     public static int[] redStar = new int[100];//max100
@@ -289,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                         {
                             flag = 1;
                             //开始计时
-                            tick.setBase(SystemClock.elapsedRealtime()-(long) tempTime);
+                            tick.setBase(SystemClock.elapsedRealtime()-(long)tempTime);
                             tick.start();
                         }
                         break;
@@ -297,7 +307,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                         if(flag==1)//下拉框收起
                         {
                             flag = 0;
-                            time=temp0*60+temp1;
+                            //time=temp0*60+temp1;
                             tempTime = SystemClock.elapsedRealtime()-tick.getBase();
                             tick.stop();
                             try {
@@ -411,6 +421,8 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         recycleList = new ArrayList<>();
         for (int i = 0; i < nol; i++) {
             recycleList.add(tempTotalList.get(someOfTotal[i]));
+            //添加的同时初始化该单词所对应的星星数，并置为0，Key代表单词，value是储存星星数目的类
+            map.put(tempTotalList.get(someOfTotal[i]),new Star(0,0));
         }
         for (int i = 0; i < nol; i++) {
             tempTotalList.remove(recycleList.get(i));//相当于把total移动十个到recycle
@@ -449,6 +461,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
             }
         }
         else {
+                //recycle等于0的时候，即背诵任务完成
                 if(recycleList.size()==0)
                 {
                     LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
@@ -458,7 +471,22 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                     spell.setText("今日任务已完成");
                     TextView continue_go = (TextView)findViewById(R.id.btn);
                     continue_go.setVisibility(View.VISIBLE);
-                    summit(data);//提交数据
+
+                    //提交背诵数据
+                    data.setWord_record(wrdList);
+                    // 获取当天零点零分零秒的时间戳
+                    Calendar currentDay = Calendar.getInstance();
+                    currentDay.setTime(new Date());
+                    currentDay.set(Calendar.HOUR_OF_DAY, 0);
+                    currentDay.set(Calendar.MINUTE, 0);
+                    String day = String.valueOf(currentDay.getTime().getTime());
+                    trdList.add(new RequestData.TimeRecordDTO(day,time));
+                    data.setTime_record(trdList);
+                    summit(data);
+                    //提交后清空缓存
+                    trdList.clear();
+                    wrdList.clear();
+
                     for (int i = 0; i < 4; i++) {
                         items[i].setText("");
                         items[i].setVisibility(View.INVISIBLE);
@@ -471,8 +499,11 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                     flag = 2;//不是1不是0，无论上下滑都不计时了
                     tempTime = SystemClock.elapsedRealtime()-tick.getBase();
                     tick.stop();
-                    tick.setBase(SystemClock.elapsedRealtime());
                     tick.setVisibility(View.INVISIBLE);
+                    //设置手表时间
+                    TextView watch = (TextView)findViewById(R.id.watch);
+                    watch.setText(tick.getText());
+
 
                     PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
                         @Override
@@ -489,20 +520,25 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                                 llStar.setVisibility(View.VISIBLE);
                                 tick.setVisibility(View.VISIBLE);
                                 reciteOfWork();
+                                //开始计时
+                                flag = 1;
+                                tick.setBase(SystemClock.elapsedRealtime()-(long)tempTime);
                                 tick.start();
+                                continue_go.setVisibility(View.INVISIBLE);
+                                ClearArray.toBeZero(redStar);
+                                ClearArray.toBeZero(greStar);
                             } catch (GeneralSecurityException | IOException e) {
                                 e.printStackTrace();
                             }
                         }
                     },0.8f);
-
                     return;
                 }
                 //recycle小于4的时候
                 integers = GetRandomNum.getIntegers(recycleList.size(), recycleList.size());
                 //size个选项随机选取一个作为正确答案
                 rightIndex = GetRandomNum.getOneInt(recycleList.size());
-                //四个中的rightIndex作为spell
+                //size个中的rightIndex作为spell
                 spell.setText(recycleList.get(integers[rightIndex]).getWord().getSpell());
                 //发音（英式美式等,不全）
                 if (recycleList.get(integers[rightIndex]).getWord().getAudio().size() != 0)
@@ -517,6 +553,8 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                 }
         }
         //点之前刷新星星
+        Log.d("MainActivity", "someOfTotal.length:" + someOfTotal.length);
+
         refreshStar(greStar[someOfTotal[integers[rightIndex]]],redStar[someOfTotal[integers[rightIndex]]]);
         //点击选项
         int finalRightIndex = rightIndex;
@@ -526,45 +564,21 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
             public void onClick(View v) {
                 if(v.getId()==items[finalRightIndex].getId())
                 {
-                    if(recycleList.size()==0)
-                    {
-                        spell.setText("今日任务已完成");
-                        try {
-                            summit(data);//提交数据
-                        } catch (GeneralSecurityException | IOException e) {
-                            e.printStackTrace();
-                        }
-                        for (int i = 0; i < 4; i++) {
-                            items[i].setText("");
-                            items[i].setVisibility(View.INVISIBLE);
-                        }
-                        LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
-                        LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
-                        LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
-                        ll1.setVisibility(View.INVISIBLE);
-                        ll2.setVisibility(View.INVISIBLE);
-                        llStar.setVisibility(View.INVISIBLE);
-                        //停止计时
-                        flag = 2;//不是1不是0，无论上下滑都不计时了
-                        tempTime = SystemClock.elapsedRealtime()-tick.getBase();
-                        tick.stop();
-                        tick.setBase(SystemClock.elapsedRealtime());
-                        tick.setVisibility(View.INVISIBLE);
-                        return;
-                    }
-                    else
-                    {
                         v.setBackgroundResource(R.drawable.shape_9);
                         items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
                         for (int i = 0; i < 4; i++) {
                             if(finalRightIndex !=i) items[i].setTextColor(0xFFD4D6D8);//灰色
                         }
                         //选对,绿星加一
+                    Log.d("MainActivity", "----------------");
+                    Log.d("MainActivity", "finalRightIndex:" + finalRightIndex);
+                    Log.d("MainActivity", "finalIntegers[finalRightIndex]:" + finalIntegers[finalRightIndex]);
+                    Log.d("MainActivity", "someOfTotal[finalIntegers[finalRightIndex]]:" + someOfTotal[finalIntegers[finalRightIndex]]);
+                    Log.d("MainActivity", "someOfTotal.length:" + someOfTotal.length);
+                    Log.d("MainActivity", "----------------");
                         if(greStar[someOfTotal[finalIntegers[finalRightIndex]]]+redStar[someOfTotal[finalIntegers[finalRightIndex]]]<5
                                 &&greStar[someOfTotal[finalIntegers[finalRightIndex]]]<3)
                             greStar[someOfTotal[finalIntegers[finalRightIndex]]]+=1;
-
-                    }
 
                 }
                 else
@@ -585,7 +599,8 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                             {
                                 //tempTotalList还有
                                 recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
-                                greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                                greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                                redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
                                 tempTotalList.remove(tempTotalList.get(0));
                             }
                             else
@@ -609,7 +624,8 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                             {
                                 //tempTotalList还有
                                 recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
-                                greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                                greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                                redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
                                 tempTotalList.remove(tempTotalList.get(0));
                             }
                             else
@@ -620,36 +636,8 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                             }
                             Toast.makeText(MainActivity.this, "收藏+1", Toast.LENGTH_SHORT).show();
                             break;
-                        //其它三个选项
+                        //其它三个选项(选错)
                         default:
-                            if(recycleList.size()==0)
-                            {
-                                spell.setText("今日任务已完成");
-                                try {
-                                    summit(data);//提交数据
-                                } catch (GeneralSecurityException | IOException e) {
-                                    e.printStackTrace();
-                                }
-                                for (int i = 0; i < 4; i++) {
-                                    items[i].setText("");
-                                    items[i].setVisibility(View.INVISIBLE);
-                                }
-                                LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
-                                LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
-                                LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
-                                ll1.setVisibility(View.INVISIBLE);
-                                ll2.setVisibility(View.INVISIBLE);
-                                llStar.setVisibility(View.INVISIBLE);
-                                //停止计时
-                                flag = 2;//不是1不是0，无论上下滑都不计时了
-                                tempTime = SystemClock.elapsedRealtime()-tick.getBase();
-                                tick.stop();
-                                tick.setBase(SystemClock.elapsedRealtime());
-                                tick.setVisibility(View.INVISIBLE);
-                                return;
-                            }
-                            else
-                            {
                                 v.setBackgroundResource(R.drawable.shape_10);
                                 items[finalRightIndex].setBackgroundResource(R.drawable.shape_9);
                                 items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
@@ -660,11 +648,8 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                                 if(greStar[someOfTotal[finalIntegers[finalRightIndex]]]+redStar[someOfTotal[finalIntegers[finalRightIndex]]]<5
                                         &&redStar[someOfTotal[finalIntegers[finalRightIndex]]]<3)
                                     redStar[someOfTotal[finalIntegers[finalRightIndex]]]+=1;
-                            }
-
                             break;
                     }
-
 
 
                 }
@@ -758,6 +743,9 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
     //显示和刷新星星数目
     private void refreshStar(int greStarNum,int redStarNum)
     {
+        Log.d("MainActivity", "greStarNum:" + greStarNum);
+        Log.d("MainActivity", "redStarNum:" + redStarNum);
+
         ImageView[] ivStars = new ImageView[5];
         ivStars[0] = (ImageView)findViewById(R.id.star1);
         ivStars[1] = (ImageView)findViewById(R.id.star2);
@@ -803,6 +791,21 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
 
     //结束背单词，提交背诵数据
     private void summit(RequestData data) throws GeneralSecurityException, IOException {
+        ProgressDialog progressDialog;
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("上传数据中···");
+        progressDialog.setCancelable(false);
+
+        if (data.getWord_record().size()!=0)//需要提交的单词数为0，则不显示进度条
+        {
+            progressDialog.show();
+        }
+
+        ProgressBar pb = new ProgressBar(MainActivity.this, null, android.R.attr.progressBarStyleHorizontal);
+        for (int i = 0; i < data.getWord_record().size(); i++) {
+            Log.d("MainActivity", "data:" + data.getWord_record().get(i));
+        }
+
         Gson gson = new Gson();
         String jsonStr= gson.toJson(data);
         String token = SecuritySP.DecryptSP(this,"token");
@@ -826,11 +829,17 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                         try {
                             JsonObject jsonObject = JsonParser.parseString(responseBody.string()).getAsJsonObject();
                             int state = jsonObject.get("state").getAsInt();
-//                            Toast.makeText(MainActivity.this, "state:" + state, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "state:" + state, Toast.LENGTH_SHORT).show();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
                 });
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                progressDialog.dismiss();
+            }
+        },2000);
     }
 }
