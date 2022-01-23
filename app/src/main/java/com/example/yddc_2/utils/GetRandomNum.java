@@ -18,12 +18,18 @@ public class GetRandomNum {
     public static Integer[] getIntegers(int size,int max){
         Random random= new Random();
         Set<Integer> set= new HashSet<Integer>();
+        Integer[] integers = new Integer[size];
         while (set.size() < size)
         {
             //Random.nextInt(int num)随机返回一个值在[0,num)的int类型的整数,包括0不包括num
+            int temp = set.size();
             Integer next = random.nextInt(max);
             set.add(next);
+            if(set.size()>temp)//说明这个随机数没有重复，就把他添加到List里
+            {
+                integers[temp] = next;
+            }
         }
-        return set.toArray(new Integer[0]);
+        return integers;
     }
 }

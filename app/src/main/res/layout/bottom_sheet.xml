@@ -61,7 +61,6 @@
                             android:layout_gravity="center"
                             android:background="@drawable/shape_1"
                             android:gravity="center_horizontal"
-                            android:text="CET 4"
                             android:textColor="@color/black"
                             android:textSize="10sp"
                             tools:ignore="SmallSp" />
@@ -83,7 +82,6 @@
                             android:layout_gravity="center"
                             android:background="@drawable/shape_1"
                             android:gravity="center_horizontal"
-                            android:text="1024"
                             android:textColor="@color/black"
                             android:textSize="10sp"
                             tools:ignore="SmallSp" />
@@ -105,7 +103,6 @@
                             android:layout_gravity="center"
                             android:background="@drawable/shape_1"
                             android:gravity="center_horizontal"
-                            android:text="17"
                             android:textColor="@color/black"
                             android:textSize="10sp"
                             tools:ignore="SmallSp" />

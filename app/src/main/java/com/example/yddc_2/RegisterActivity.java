@@ -200,7 +200,24 @@ public class RegisterActivity extends AppCompatActivity{
                                         }
                                     });
                                 }
-                                else Toast.makeText(RegisterActivity.this, "state:" + state, Toast.LENGTH_SHORT).show();
+                                else if(state==412)
+                                {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(RegisterActivity.this, "该账号已存在", Toast.LENGTH_SHORT).show();
+                                            InitCode();
+                                        }
+                                    });
+                                }
+                                else {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(RegisterActivity.this, "state:" + state, Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }

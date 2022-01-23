@@ -111,7 +111,7 @@ public class ThirdFragment extends Fragment{
         String[] res2 = getResources().getStringArray(R.array.recite_way);
         List<String> data1 = new LinkedList<>(Arrays.asList(res1));
         List<String> data2 = new LinkedList<>(Arrays.asList(res2));
-        //词典：高中/CET4/CET6/考研/GRE/TOEFL/IELTS
+        //词典：CET4/CET6/高中/考研/GRE/TOEFL/IELTS
         NiceSpinner spWordBook = binding.SpWordBook;
         spWordBook.attachDataSource(data1);
         //默认模式：任务模式、收藏模式（本地修改）
@@ -130,11 +130,12 @@ public class ThirdFragment extends Fragment{
                 watch = setting.getData().getWatRem();
                 phone = setting.getData().getPhoRem();
                 List<String> list = new ArrayList<>(Arrays.asList(res1));//用于确定下标顺序
-                if(tag.equals(""))//tag为空，说明刚注册，默认选第一个（“高中”），并上传
+                if(tag.equals(""))//tag为空，说明刚注册，默认选第一个（“CET4”），并上传
                 {
                     tag=data1.get(0);
+                    spWordBook.setSelectedIndex(list.indexOf(tag));
                     try {
-                        updateSetting(tag,watch,phone,true);
+                        updateSetting(tag,watch,phone);
                     } catch (GeneralSecurityException | IOException e) {
                         e.printStackTrace();
                     }
@@ -147,7 +148,7 @@ public class ThirdFragment extends Fragment{
                         if(isChecked) watch = 1;
                         else watch = 0;
                         try {
-                            updateSetting(tag,watch,phone,false);
+                            updateSetting(tag,watch,phone);
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
@@ -160,7 +161,7 @@ public class ThirdFragment extends Fragment{
                         if(isChecked) phone = 1;
                         else phone = 0;
                         try {
-                            updateSetting(tag,watch,phone,false);
+                            updateSetting(tag,watch,phone);
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
@@ -175,7 +176,7 @@ public class ThirdFragment extends Fragment{
                 tag = data1.get(position);
                 try {
                     //initWord
-                    updateSetting(tag,watch,phone,true);
+                    updateSetting(tag,watch,phone);
                     //FirstFragment的initSetting,从而显示新的DAYS
                     //这里实现的方法是用广播通知对方再次实行initSetting方法来刷新days
                     Intent intent = new Intent("initSetting");
@@ -193,22 +194,16 @@ public class ThirdFragment extends Fragment{
                 Toast.makeText(requireActivity(), data2.get(position), Toast.LENGTH_SHORT).show();
             }
         });
-
-
-
-
-
     }
 
-    private void updateSetting(String tag, int watch, int phone, Boolean refresh) throws GeneralSecurityException, IOException {
-        //refresh：一个bool变量，决定是否initWord，因为手表和手机提醒不影响词库的改变，所以不initWord
+    private void updateSetting(String tag, int watch, int phone) throws GeneralSecurityException, IOException {
         String token = SecuritySP.DecryptSP(getContext(),"token");
         Map<String,Object> settingMap = new HashMap<>();
         settingMap.put("tag",tag);
         settingMap.put("watRem",watch);
         settingMap.put("phoRem",phone);
         settingMap.put("circWay", 0);
-        Log.d("ThirdFragment", "settingMap:" + settingMap);
+        //Log.d("ThirdFragment", "settingMap:" + settingMap);
         GetNetService.GetApiService().updateSetting(token,settingMap)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -221,7 +216,7 @@ public class ThirdFragment extends Fragment{
                     @Override
                     public void onError(Throwable e) {
                             Toast.makeText(getContext(), "updateSetting onError", Toast.LENGTH_SHORT).show();
-                            Log.d("ThirdFragment", "e:" + e);
+                            //Log.d("ThirdFragment", "e:" + e);
                     }
 
                     @Override
@@ -229,16 +224,9 @@ public class ThirdFragment extends Fragment{
                         try {
                             JsonObject jsonObject = JsonParser.parseString(responseBody.string()).getAsJsonObject();
                             int state = jsonObject.get("state").getAsInt();
-                            if (state!=200) Toast.makeText(getContext(), "修改失败 State："+state, Toast.LENGTH_SHORT).show();
+                            if (state==200) Toast.makeText(getContext(), "设置更新", Toast.LENGTH_SHORT).show();
                             else {
-                                if(refresh)
-                                {
-                                    //刷新initWords
-                                    //一个小技巧，把时间改为不同步，再刷新MainActivity，达到刷新单词列表的目的
-                                    Calendar calendar = Calendar.getInstance();
-                                    int dayOfWord = calendar.get(Calendar.DAY_OF_MONTH);
-                                    SecuritySP.EncryptSP(getContext(),"day",String.valueOf(dayOfWord-1));
-                                }
+                                Toast.makeText(getContext(), "设置失败 State:"+state, Toast.LENGTH_SHORT).show();
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -250,7 +238,7 @@ public class ThirdFragment extends Fragment{
 
 
     //下载头像或背景
-    private  void downHead_Back(ImageView iv,String url,String name)
+    private void downHead_Back(ImageView iv,String url,String name)
     {
 
         if(!url.equals(""))//url不为空，说明有上传图片，可以选择是下载还是加载本地图片

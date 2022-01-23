@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -92,6 +93,7 @@ public class FirstFragment extends Fragment {
         //注册广播
         registerReceiver();
         try {
+            //初始化设置
             initSettings();
         } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();
@@ -112,6 +114,7 @@ public class FirstFragment extends Fragment {
                         //在这里来写你需要刷新的地方
                         try {
                             initSettings();//在ThirdFragment更新单词本后执行
+                            Log.d("FirstFragment", "通知到位");
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
@@ -120,7 +123,6 @@ public class FirstFragment extends Fragment {
             }
         }
     };
-
     //注册广播接收器
     private void registerReceiver() {
         broadcastManager = LocalBroadcastManager.getInstance(requireActivity());
@@ -134,6 +136,7 @@ public class FirstFragment extends Fragment {
         super.onDetach();
         broadcastManager.unregisterReceiver(mAdDownLoadReceiver);
     }
+
     //FirstFragment里initSetting的同时加载词库iniTodayWords()
     private void initSettings() throws GeneralSecurityException, IOException {
         com.shawnlin.numberpicker.NumberPicker list = binding.list;
@@ -148,7 +151,22 @@ public class FirstFragment extends Fragment {
             @Override
             public void onChanged(Setting setting) {
                 set = setting;
-                //把setting保存到本地
+                String tag = setting.getData().getTag();//单词本tag
+
+                /*
+                如果tag为空，说明刚注册，那么无法获取到单词数目，所以把tag置为默认第一个单词本选项，即“CET4”；
+                这里tag改成“CET4”后不需要上传，只是方便此处直接获取到单词库数目；
+                tag的默认修改值在ThirdFragment处上传
+                 */
+                String[] res = getResources().getStringArray(R.array.word_book);
+                List<String> data = new LinkedList<>(Arrays.asList(res));
+                if (tag.equals("")) {
+                    tag=data.get(0);
+                    //并修改set里的tag
+                    set.getData().setTag(tag);
+                }
+
+                //把修改tag后的setting保存到本地，MainActivity的reciteOfWork()会用到
                 Gson gson = new Gson();
                 String jsonStr = gson.toJson(set);
                 try {
@@ -160,44 +178,39 @@ public class FirstFragment extends Fragment {
                     e.printStackTrace();
                 }
                 //获取单词本的单词总数
-                String tag = setting.getData().getTag();
-                if(!tag.equals(""))//tag不为空
-                    GetNetService.GetApiService().getNumOfBook(tag)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new rx.Observer<ResponseBody>() {
-                                @Override
-                                public void onCompleted() {
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
-                                    Toast.makeText(getContext(), "getNumOfBook onError", Toast.LENGTH_SHORT).show();
-                                }
-
-                                @Override
-                                public void onNext(ResponseBody responseBody) {
-                                    try {
-                                        JsonObject jsonObject = JsonParser.parseString(responseBody.string()).getAsJsonObject();
-                                        int state = jsonObject.get("state").getAsInt();
-                                        if (state==200)
-                                        {
-                                            list.setValue(setting.getData().getList());
-                                            nl.setValue(setting.getData().getNumOfList());
-                                            num = jsonObject.get("data").getAsJsonObject().get("num").getAsInt();
-                                            int d = (int)(num/(setting.getData().getList()*setting.getData().getNumOfList()));
-                                            day.setMaxValue(Math.max(d, 200));
-                                            day.setValue(d);
-                                            //更新bottom上的当前词汇tag显示
-                                            TextView tag = (TextView) requireActivity().findViewById(R.id.tag);
-                                            tag.setText(set.getData().getTag());
-                                        }
-                                        else Toast.makeText(getContext(), "getNumOfBook:state:" + state, Toast.LENGTH_SHORT).show();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                GetNetService.GetApiService().getNumOfBook(tag)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new rx.Observer<ResponseBody>() {
+                            @Override
+                            public void onCompleted() {
+                            }
+                            @Override
+                            public void onError(Throwable e) {
+                                Toast.makeText(getContext(), "getNumOfBook onError", Toast.LENGTH_SHORT).show();
+                            }
+                            @Override
+                            public void onNext(ResponseBody responseBody) {
+                                try {
+                                    JsonObject jsonObject = JsonParser.parseString(responseBody.string()).getAsJsonObject();
+                                    int state = jsonObject.get("state").getAsInt();
+                                    if (state==200)
+                                    {
+                                        list.setValue(setting.getData().getList());
+                                        nl.setValue(setting.getData().getNumOfList());
+                                        num = jsonObject.get("data").getAsJsonObject().get("num").getAsInt();
+                                        int d = (int)(num/(setting.getData().getList()*setting.getData().getNumOfList()));
+                                        day.setMaxValue(Math.max(d, 200));
+                                        day.setValue(d);
+                                        //更新bottom上的当前词汇tag显示
+                                        TextView tag = (TextView) requireActivity().findViewById(R.id.tag);
+                                        tag.setText(set.getData().getTag());
                                     }
+                                    else Toast.makeText(getContext(), "getNumOfBook:state:" + state, Toast.LENGTH_SHORT).show();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
                                 }
-                            });
+                            }});
             }
         });
         //监听器
@@ -293,8 +306,7 @@ public class FirstFragment extends Fragment {
                         try {
                             JsonObject jsonObject = JsonParser.parseString(responseBody.string()).getAsJsonObject();
                             int state = jsonObject.get("state").getAsInt();
-                            if (state!=200) Toast.makeText(getContext(), "保存失败 State："+state, Toast.LENGTH_SHORT).show();
-                            else
+                            if (state==200)
                             {
                                 //一个小技巧，把时间改为不同步，再刷新MainActivity，达到刷新单词列表的目的
                                 Calendar calendar = Calendar.getInstance();
@@ -303,6 +315,10 @@ public class FirstFragment extends Fragment {
                                 Toast.makeText(getContext(), "提交成功", Toast.LENGTH_SHORT).show();
                                 //重新iniSetting和iniTodayWords
                                 initSettings();
+                            }
+                            else
+                            {
+                                Toast.makeText(getContext(), "保存失败 State："+state, Toast.LENGTH_SHORT).show();
                             }
                         } catch (Exception e) {
                             e.printStackTrace();

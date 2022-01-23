@@ -60,6 +60,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.sql.StatementEvent;
 
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
     public static List<WordList.DataDTO> tempTotalList;//tempTotalList的初始值是totalList中tag为0的所有单词，每生成一个recycleList，它就减去10个，recycleList每更新一个，它就减去一个
     public static List<WordList.DataDTO> recycleList;//大小为10,保存每次背诵时循环的十个单词
     //保存一个list中单词个数的随机数的数组(nol)
-    public static Integer[] someOfTotal = new Integer[100];//max50
+    public static Integer[] someOfTotal = new Integer[100];//max100
     //用来保存单词所对应的绿星和红星的数目
     Map<WordList.DataDTO, Star> map = new HashMap<WordList.DataDTO, Star>();
     //定义一个保存绿星和红星个数的数组
@@ -427,8 +428,6 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         for (int i = 0; i < nol; i++) {
             tempTotalList.remove(recycleList.get(i));//相当于把total移动十个到recycle
         }
-//        Toast.makeText(this, "totalList.size():" + totalList.size(), Toast.LENGTH_SHORT).show();
-//        Toast.makeText(this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
         reciteProcess();
     }
 
@@ -440,7 +439,6 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         TextView item2 = (TextView) findViewById(R.id.item2);
         TextView item3 = (TextView) findViewById(R.id.item3);
         TextView item4 = (TextView) findViewById(R.id.item4);
-        Log.d("MainActivity", "totalList.size():" + String.valueOf(totalList.size()));
         //从10个随机取四个
         Integer[] integers = new Integer[0];int rightIndex = 0;
         TextView[] items = new TextView[]{item1,item2,item3,item4};
@@ -504,7 +502,6 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                     TextView watch = (TextView)findViewById(R.id.watch);
                     watch.setText(tick.getText());
 
-
                     PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -519,14 +516,13 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                                 ll2.setVisibility(View.VISIBLE);
                                 llStar.setVisibility(View.VISIBLE);
                                 tick.setVisibility(View.VISIBLE);
-                                reciteOfWork();
                                 //开始计时
                                 flag = 1;
                                 tick.setBase(SystemClock.elapsedRealtime()-(long)tempTime);
                                 tick.start();
                                 continue_go.setVisibility(View.INVISIBLE);
-                                ClearArray.toBeZero(redStar);
-                                ClearArray.toBeZero(greStar);
+//                                ClearArray.toBeZero(redStar);
+//                                ClearArray.toBeZero(greStar);
                             } catch (GeneralSecurityException | IOException e) {
                                 e.printStackTrace();
                             }
@@ -550,18 +546,19 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                 }
                 for (int i = 0; i < 4 - recycleList.size(); i++) {
                     items[3 - i].setText("");
+                    items[3 - i].setEnabled(false);
                 }
         }
-        //点之前刷新星星
-        Log.d("MainActivity", "someOfTotal.length:" + someOfTotal.length);
-
-        refreshStar(greStar[someOfTotal[integers[rightIndex]]],redStar[someOfTotal[integers[rightIndex]]]);
+        //点击选项之前刷新星星，显示新的单词选项所对应的星星数目
+        refreshStar(Objects.requireNonNull(map.get(recycleList.get(integers[rightIndex]))).getGre(),
+                Objects.requireNonNull(map.get(recycleList.get(integers[rightIndex]))).getRed());
         //点击选项
         int finalRightIndex = rightIndex;
         Integer[] finalIntegers = integers;
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if(v.getId()==items[finalRightIndex].getId())
                 {
                         v.setBackgroundResource(R.drawable.shape_9);
@@ -570,26 +567,48 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                             if(finalRightIndex !=i) items[i].setTextColor(0xFFD4D6D8);//灰色
                         }
                         //选对,绿星加一
-                    Log.d("MainActivity", "----------------");
-                    Log.d("MainActivity", "finalRightIndex:" + finalRightIndex);
-                    Log.d("MainActivity", "finalIntegers[finalRightIndex]:" + finalIntegers[finalRightIndex]);
-                    Log.d("MainActivity", "someOfTotal[finalIntegers[finalRightIndex]]:" + someOfTotal[finalIntegers[finalRightIndex]]);
-                    Log.d("MainActivity", "someOfTotal.length:" + someOfTotal.length);
-                    Log.d("MainActivity", "----------------");
-                        if(greStar[someOfTotal[finalIntegers[finalRightIndex]]]+redStar[someOfTotal[finalIntegers[finalRightIndex]]]<5
-                                &&greStar[someOfTotal[finalIntegers[finalRightIndex]]]<3)
-                            greStar[someOfTotal[finalIntegers[finalRightIndex]]]+=1;
+                        if(Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getGre()<3)
+                        {
+                            Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex])))
+                                    .setGre(Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getGre()+1);
+                            //刷新星星
+                            refreshStar(Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getGre(),
+                                    Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getRed());
+                        }
+                    //满三颗星就刷新recycleList,从tempTotalList添加，从tempTotalList减一
+                    if(Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getGre()==3)
+                    {
+                        //把该单词tag设置为2，相当于记住
+                        WordList.DataDTO ddt = recycleList.get(finalIntegers[finalRightIndex]);
+                        //构建提交数据
+                        RequestData.WordRecordDTO wrd=new RequestData.WordRecordDTO(ddt.getId(),2,
+                                ddt.getTimesReview(),ddt.getDifficult(),String.valueOf(new Date().getTime()));
+                        wrdList.add(wrd);
+                        //从tempTotalList拿一个生词替换recycleList中这个位置的单词，并把这个单词星星数归0
+                        if(tempTotalList.size()!=0)
+                        {
+                            //tempTotalList里还有单词
+                            recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
+                            map.put(tempTotalList.get(0),new Star(0,0));//
+                            tempTotalList.remove(tempTotalList.get(0));
+                        }
+                        else
+                        {
+                            //tempTotalList已经全被加进Recycle了，就recycle-1
+                            recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
+                        }
 
+                    }
                 }
                 else
                 {
                     switch (v.getId())
                     {
-                        //收藏和无需再背
+                        //无需再背
                         case R.id.yes:
                             items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
-                            //把totalList的该单词tag设置为1,无需再背
-                            WordList.DataDTO ddt = totalList.get(someOfTotal[finalIntegers[finalRightIndex]]);
+                            //把该单词tag设置为1,无需再背
+                            WordList.DataDTO ddt = recycleList.get(finalIntegers[finalRightIndex]);
                             //构建提交数据
                             RequestData.WordRecordDTO wrd=new RequestData.WordRecordDTO(ddt.getId(),1,
                                     ddt.getTimesReview(),ddt.getDifficult(),String.valueOf(new Date().getTime()));
@@ -597,24 +616,23 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                             //已经掌握，就移除
                             if(tempTotalList.size()!=0)
                             {
-                                //tempTotalList还有
+                                //tempTotalList里还有单词
                                 recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
-                                greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
-                                redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                                map.put(tempTotalList.get(0),new Star(0,0));//
                                 tempTotalList.remove(tempTotalList.get(0));
                             }
                             else
                             {
                                 //tempTotalList已经全被加进Recycle了，就recycle-1
                                 recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
-                                Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
                             }
-
-                            Toast.makeText(MainActivity.this, "掌握+1", Toast.LENGTH_SHORT).show();
+                            //把星星全部显示绿色，起到一个提示操作的作用
+                            refreshStar(5,0);
                             break;
+                        //收藏
                         case R.id.no:
                             items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
-                            WordList.DataDTO ddt_ = totalList.get(someOfTotal[finalIntegers[finalRightIndex]]);
+                            WordList.DataDTO ddt_ = recycleList.get(finalIntegers[finalRightIndex]);
                             //构建提交数据
                             RequestData.WordRecordDTO wrd_=new RequestData.WordRecordDTO(ddt_.getId(),4,
                                     ddt_.getTimesReview(),ddt_.getDifficult(),String.valueOf(new Date().getTime()));
@@ -624,20 +642,20 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                             {
                                 //tempTotalList还有
                                 recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
-                                greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
-                                redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
+                                map.put(tempTotalList.get(0),new Star(0,0));//
                                 tempTotalList.remove(tempTotalList.get(0));
                             }
                             else
                             {
                                 //tempTotalList已经全被加进Recycle了，就recycle-1
                                 recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
-                                Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
                             }
-                            Toast.makeText(MainActivity.this, "收藏+1", Toast.LENGTH_SHORT).show();
+                            //把星星全部显示绿色，起到一个提示操作的作用
+                            refreshStar(0,5);
                             break;
                         //其它三个选项(选错)
                         default:
+
                                 v.setBackgroundResource(R.drawable.shape_10);
                                 items[finalRightIndex].setBackgroundResource(R.drawable.shape_9);
                                 items[finalRightIndex].setTextColor(getResources().getColor(R.color.teal_200));
@@ -645,68 +663,46 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                                     if(finalRightIndex !=i) items[i].setTextColor(0xFFD4D6D8);//灰色
                                 }
                                 //选错,红星加一
-                                if(greStar[someOfTotal[finalIntegers[finalRightIndex]]]+redStar[someOfTotal[finalIntegers[finalRightIndex]]]<5
-                                        &&redStar[someOfTotal[finalIntegers[finalRightIndex]]]<3)
-                                    redStar[someOfTotal[finalIntegers[finalRightIndex]]]+=1;
+                            if(Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getRed()<3)
+                            {
+                                Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex])))
+                                        .setRed(Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getRed()+1);
+                                //刷新星星
+                                refreshStar(Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getGre(),
+                                        Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getRed());
+                            }
+                            //满三颗星就刷新recycleList,从tempTotalList添加，从tempTotalList减一
+                            if(Objects.requireNonNull(map.get(recycleList.get(finalIntegers[finalRightIndex]))).getRed()==3)
+                            {
+                                //把totalList的该单词tag设置为3，相当于加入(自动)收藏
+                                WordList.DataDTO ddt__ = recycleList.get(finalIntegers[finalRightIndex]);
+                                //构建提交数据
+                                RequestData.WordRecordDTO wrd__=new RequestData.WordRecordDTO(ddt__.getId(),3,
+                                        ddt__.getTimesReview(),ddt__.getDifficult(),String.valueOf(new Date().getTime()));
+                                wrdList.add(wrd__);
+                                //从tempTotalList拿一个生词替换recycleList中这个位置的单词
+                                if(tempTotalList.size()!=0)
+                                {
+                                    //tempTotalList还有
+                                    recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
+                                    map.put(tempTotalList.get(0),new Star(0,0));//
+                                    tempTotalList.remove(tempTotalList.get(0));
+                                }
+                                else
+                                {
+                                    //tempTotalList已经全被加进Recycle了，就recycle-1
+                                    recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
+                                    Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
+                                }
+                            }
                             break;
                     }
-
-
                 }
-                //刷新星星
-                refreshStar(greStar[someOfTotal[finalIntegers[finalRightIndex]]],redStar[someOfTotal[finalIntegers[finalRightIndex]]]);
+
                 //保存星星数组到本地，每日更新
                 //···
                 //···这里由于星星数据还没写手机和手表同步的接口，代码搁置在这
                 //···
-                //满三颗星就刷新recycleList,从tempTotalList添加，从tempTotalList减一
-                if(greStar[someOfTotal[finalIntegers[finalRightIndex]]]==3)
-                {
-                    //把totalList的该单词tag设置为2，相当于记住
-                    WordList.DataDTO ddt = totalList.get(someOfTotal[finalIntegers[finalRightIndex]]);
-                    //构建提交数据
-                    RequestData.WordRecordDTO wrd=new RequestData.WordRecordDTO(ddt.getId(),2,
-                            ddt.getTimesReview(),ddt.getDifficult(),String.valueOf(new Date().getTime()));
-                    wrdList.add(wrd);
-                        //从tempTotalList拿一个生词替换recycleList中这个位置的单词，并把这个单词星星数归0
-                    if(tempTotalList.size()!=0)
-                    {
-                        //tempTotalList还有
-                        recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
-                        greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
-                        tempTotalList.remove(tempTotalList.get(0));
-                    }
-                    else
-                    {
-                        //tempTotalList已经全被加进Recycle了，就recycle-1
-                        recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
-                        Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
-                    }
-
-                }
-                if(redStar[someOfTotal[finalIntegers[finalRightIndex]]]==3)
-                {
-                    //把totalList的该单词tag设置为3，相当于加入(自动)收藏
-                    WordList.DataDTO ddt = totalList.get(someOfTotal[finalIntegers[finalRightIndex]]);
-                    //构建提交数据
-                    RequestData.WordRecordDTO wrd=new RequestData.WordRecordDTO(ddt.getId(),3,
-                            ddt.getTimesReview(),ddt.getDifficult(),String.valueOf(new Date().getTime()));
-                    wrdList.add(wrd);
-                    //从tempTotalList拿一个生词替换recycleList中这个位置的单词
-                    if(tempTotalList.size()!=0)
-                    {
-                        //tempTotalList还有
-                        recycleList.set(finalIntegers[finalRightIndex],tempTotalList.get(0));
-                        greStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;redStar[someOfTotal[finalIntegers[finalRightIndex]]] = 0;
-                        tempTotalList.remove(tempTotalList.get(0));
-                    }
-                    else
-                    {
-                        //tempTotalList已经全被加进Recycle了，就recycle-1
-                        recycleList.remove(recycleList.get(finalIntegers[finalRightIndex]));
-                        Toast.makeText(MainActivity.this, "recycleList.size():" + recycleList.size(), Toast.LENGTH_SHORT).show();
-                    }
-                }
 
                 //点击一秒(供用户查看)后刷新选项,这个期间要禁止点击
                 item1.setEnabled(false);item2.setEnabled(false);
@@ -726,7 +722,6 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
-                        Log.d("MainActivity", "tempTotalList.size():" + String.valueOf(tempTotalList.size()));
                     }
                 },1500);
             }
@@ -743,9 +738,6 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
     //显示和刷新星星数目
     private void refreshStar(int greStarNum,int redStarNum)
     {
-        Log.d("MainActivity", "greStarNum:" + greStarNum);
-        Log.d("MainActivity", "redStarNum:" + redStarNum);
-
         ImageView[] ivStars = new ImageView[5];
         ivStars[0] = (ImageView)findViewById(R.id.star1);
         ivStars[1] = (ImageView)findViewById(R.id.star2);
@@ -754,11 +746,11 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         ivStars[4] = (ImageView)findViewById(R.id.star5);
         //设置绿星显示
         for (int i = 0; i < greStarNum; i++) {
-            if(greStarNum<=3) ivStars[i].setImageResource(R.drawable.star_gre);
+            ivStars[i].setImageResource(R.drawable.star_gre);
         }
         //设置红星显示
         for (int i = 0; i < redStarNum; i++) {
-            if(redStarNum<=3) ivStars[4-i].setImageResource(R.drawable.star_red);
+            ivStars[4-i].setImageResource(R.drawable.star_red);
         }
         //设置灰星显示
         for (int i = 0; i < (5-redStarNum-greStarNum); i++) {
@@ -800,12 +792,6 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         {
             progressDialog.show();
         }
-
-        ProgressBar pb = new ProgressBar(MainActivity.this, null, android.R.attr.progressBarStyleHorizontal);
-        for (int i = 0; i < data.getWord_record().size(); i++) {
-            Log.d("MainActivity", "data:" + data.getWord_record().get(i));
-        }
-
         Gson gson = new Gson();
         String jsonStr= gson.toJson(data);
         String token = SecuritySP.DecryptSP(this,"token");

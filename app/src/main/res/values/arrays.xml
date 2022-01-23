@@ -11,9 +11,9 @@
     </string-array>
 
         <string-array name="word_book">
-            <item>高中</item>
             <item>CET4</item>
             <item>CET6</item>
+            <item>高中</item>
             <item>考研</item>
             <item>GRE</item>
             <item>TOEFL</item>
