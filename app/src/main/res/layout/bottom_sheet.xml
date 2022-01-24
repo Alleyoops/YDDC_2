@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        app:behavior_hideable="true"
+        app:behavior_hideable="false"
         app:behavior_peekHeight="110dp"
         app:layout_behavior="@string/bottom_sheet_behavior">
 
@@ -93,7 +93,7 @@
                             android:layout_gravity="center"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="来到悠点"
+                            android:text="记忆模式"
                             android:textSize="8sp" />
 
                         <TextView
@@ -256,7 +256,8 @@
                             <TextView
                                 android:id="@+id/btn"
                                 android:visibility="invisible"
-                                android:layout_width="100dp"
+                                android:layout_width="wrap_content"
+                                android:paddingHorizontal="20dp"
                                 android:text="继续挑战"
                                 android:textStyle="bold"
                                 android:layout_margin="2dp"

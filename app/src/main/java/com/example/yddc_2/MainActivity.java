@@ -22,7 +22,6 @@ import android.view.View;
 import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +33,6 @@ import com.example.yddc_2.bean.WordList;
 import com.example.yddc_2.navigation.find.SecondFragment;
 import com.example.yddc_2.navigation.me.ThirdFragment;
 import com.example.yddc_2.navigation.word.FirstFragment;
-import com.example.yddc_2.utils.ClearArray;
 import com.example.yddc_2.utils.GetNetService;
 import com.example.yddc_2.utils.GetRandomNum;
 import com.example.yddc_2.utils.HideBar;
@@ -50,6 +48,7 @@ import com.huawei.hms.hmsscankit.ScanUtil;
 import com.huawei.hms.ml.scan.HmsScan;
 import com.huawei.hms.ml.scan.HmsScanAnalyzerOptions;
 
+import org.angmarch.views.NiceSpinner;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -62,21 +61,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.sql.StatementEvent;
-
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
-
+//0:生词本，1：无需再背，2.熟悉单词(已背)，3：三次全错，4:手动添加的收藏。（3是自动添加的收藏，收藏包括已复习和未复习）
 public class MainActivity extends AppCompatActivity implements  ActivityCompat.OnRequestPermissionsResultCallback {
     private int pos = 0;//记录哪一页
     private int flag = 0;//bottomSheet展开为1
-    //以下三个list要理清关系
-    public static List<WordList.DataDTO> totalList;//比如通过链接获取到的今天的50个单词，每次背诵完后需要提交数据（更新totalList中单词的tag值）（此外totalList只是在用户注册后设置每日任务单词数前默认是50个）
+    private int count = 0;//使iniMyWords里的reciteOfWay只执行一次
+    //以下四个list要理清关系
+    public static List<WordList.DataDTO> totalList_1;//比如通过链接获取到的今天的50个单词，每次背诵完后需要提交数据（更新totalList中单词的tag值）（此外totalList只是在用户注册后设置每日任务单词数前默认是50个）
     public static List<WordList.DataDTO> tempTotalList;//tempTotalList的初始值是totalList中tag为0的所有单词，每生成一个recycleList，它就减去10个，recycleList每更新一个，它就减去一个
     public static List<WordList.DataDTO> recycleList;//大小为10,保存每次背诵时循环的十个单词
+    public static List<WordList.DataDTO> totalList_2;//任务模式的totalList
     //保存一个list中单词个数的随机数的数组(nol)
     public static Integer[] someOfTotal = new Integer[100];//max100
     //用来保存单词所对应的绿星和红星的数目
@@ -299,9 +298,24 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                         if(flag == 0)//说明下拉框刚拉上来
                         {
                             flag = 1;
-                            //开始计时
-                            tick.setBase(SystemClock.elapsedRealtime()-(long)tempTime);
-                            tick.start();
+                            //如果是收藏模式且收藏单词列表的数目为0，则不计时且不显示
+                            try {
+                                String[] res = getResources().getStringArray(R.array.recite_way);
+                                String value = SecuritySP.DecryptSP(getApplicationContext(),"reciteWay");
+                                Log.d("MainActivity", "jj");
+                                if(tempTotalList.size()==0&&value.equals(res[1])){
+                                    tick.setVisibility(View.INVISIBLE);
+                                    Log.d("MainActivity", "???");
+                                }
+                                //开始计时
+                                else {
+                                    tick.setVisibility(View.VISIBLE);
+                                    tick.setBase(SystemClock.elapsedRealtime()-(long)tempTime);
+                                    tick.start();
+                                }
+                            } catch (GeneralSecurityException | IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                         break;
                     case BottomSheetBehavior.STATE_COLLAPSED:
@@ -315,11 +329,11 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                                 //提交背诵数据
                                 data.setWord_record(wrdList);
                                 // 获取当天零点零分零秒的时间戳
-                                Calendar curentDay = Calendar.getInstance();
-                                curentDay.setTime(new Date());
-                                curentDay.set(Calendar.HOUR_OF_DAY, 0);
-                                curentDay.set(Calendar.MINUTE, 0);
-                                String day = String.valueOf(curentDay.getTime().getTime());
+                                Calendar currentDay = Calendar.getInstance();
+                                currentDay.setTime(new Date());
+                                currentDay.set(Calendar.HOUR_OF_DAY, 0);
+                                currentDay.set(Calendar.MINUTE, 0);
+                                String day = String.valueOf(currentDay.getTime().getTime());
                                 trdList.add(new RequestData.TimeRecordDTO(day,time));
                                 data.setTime_record(trdList);
                                 summit(data);
@@ -366,28 +380,57 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         });
     }
 
-    //保存当天任务的单词到本地缓存和取出本地缓存
+    //加载收藏模式单词,tag=3,4
+    public void iniMyWords() throws GeneralSecurityException, IOException {
+        MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        //获取tag（此处tag为3和4，即错三次自动收藏的和手动收藏的）
+        int tag1 = 3;//三次全错
+        int tag2 = 4;//手动收藏
+        //totalList_2的初始化
+        totalList_2 = new ArrayList<>();
+        Log.d("MainActivity", "开始");
+        viewModel.getmMyWordList(getApplicationContext(),tag1);
+        viewModel.getmMyWordList(getApplicationContext(),tag2).observe(this, new Observer<WordList>() {
+            @Override
+            public void onChanged(WordList wordList) {
+                totalList_2.addAll(wordList.getData());
+                count++;
+                if(count==2)
+                {
+                    //Log.d("MainActivity", "totalList_2.size():2" + totalList_2.size());
+                    Toast.makeText(MainActivity.this, "收藏模式：词库更新", Toast.LENGTH_SHORT).show();
+                    try {
+                        reciteOfWay(totalList_2);
+                    } catch (GeneralSecurityException | IOException e) {
+                        e.printStackTrace();
+                    }
+                    count=0;
+                }
+                Log.d("MainActivity", "结束");
+            }
+        });
+        Log.d("MainActivity", "阿哲");
+        }
+
+    //加载任务模式单词,tag=0
     public void iniTodayWords() throws GeneralSecurityException, IOException {
         MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
-        Calendar calendar = Calendar.getInstance();
-        String today = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
-        if(!today.equals(SecuritySP.DecryptSP(MainActivity.this,"day")))
-        {
-            //更新日期
-            int dayOfWord = calendar.get(Calendar.DAY_OF_MONTH);
-            SecuritySP.EncryptSP(MainActivity.this,"day",String.valueOf(dayOfWord));
-        }
+//        Calendar calendar = Calendar.getInstance();
+//        String today = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
+//        if(!today.equals(SecuritySP.DecryptSP(MainActivity.this,"day")))
+//        {
+//            //更新日期(暂时无用好像)
+//            int dayOfWord = calendar.get(Calendar.DAY_OF_MONTH);
+//            SecuritySP.EncryptSP(MainActivity.this,"day",String.valueOf(dayOfWord));
+//        }
         viewModel.getmWordList(this).observe(this, new Observer<WordList>() {
             @Override
             public void onChanged(WordList wordList) {
                 try {
-                    Gson gson = new Gson();
-                    String jsonStr = gson.toJson(wordList);
-                    SecuritySP.EncryptSP(MainActivity.this,"todayWords",jsonStr);
-                    Toast.makeText(MainActivity.this, "词库更新", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "任务模式：词库更新", Toast.LENGTH_SHORT).show();
                     //放进一个可以方便增删的list
-                    totalList = gson.fromJson(jsonStr,WordList.class).getData();
-                    reciteOfWork();
+                    totalList_1 = wordList.getData();
+                    reciteOfWay(totalList_1);
                 } catch (GeneralSecurityException | IOException e) {
                     e.printStackTrace();
                 }
@@ -395,40 +438,95 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         });
     }
 
-    //背单词之任务模式（默认模式）
-    private void reciteOfWork() throws GeneralSecurityException, IOException {
+    //背单词模式选择
+    private void reciteOfWay(List<WordList.DataDTO> TotalList) throws GeneralSecurityException, IOException {
         //获取setting
         String str = SecuritySP.DecryptSP(MainActivity.this,"setting");
         Gson gson = new Gson();
         Setting setting = gson.fromJson(str,Setting.class);
         int nol = setting.getData().getNumOfList();
-        //选取totalList里tag为生词本的单词加入tempTotalList供用户背诵
-        tempTotalList = new ArrayList<>();
-        for (WordList.DataDTO wd :totalList) {
-            //0:生词本 ，1：无需再背 ，2.熟悉单词(已背)，3：三次全错，4:手动添加的收藏。（3是自动添加的收藏，收藏包括已复习和未复习）
-            if (wd.getTag()==0) tempTotalList.add(wd);
-            //
-            //···假如totalList中单词的tag全为0呢（也就是背完了）
-            //···那么应该给用户一个提示，还有避免闪退
-            //···但是谁会测试到背完50个呢？所以先空着吧
-            //
+        //把totalList_1或totalList_1赋值给tempTotalList全局变量
+        tempTotalList = TotalList;
+
+        //如果单词list数目不够（即收藏单词数为0），则给出提示
+        if (tempTotalList.size()==0)
+        {
+            //设置invisible
+            TextView voice = (TextView) findViewById(R.id.voice);
+            TextView item1 = (TextView) findViewById(R.id.item1);
+            TextView item2 = (TextView) findViewById(R.id.item2);
+            TextView item3 = (TextView) findViewById(R.id.item3);
+            TextView item4 = (TextView) findViewById(R.id.item4);
+            TextView[] items = new TextView[]{item1,item2,item3,item4};
+            LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
+            LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
+            LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
+            ll1.setVisibility(View.INVISIBLE);
+            ll2.setVisibility(View.INVISIBLE);
+            llStar.setVisibility(View.INVISIBLE);
+            for (int i = 0; i < 4; i++) {
+                items[i].setText("");
+                items[i].setVisibility(View.INVISIBLE);
+            }
+            voice.setVisibility(View.INVISIBLE);
+            //停止计时
+            flag = 2;//不是1不是0，无论上下滑都不计时了
+            tempTime = SystemClock.elapsedRealtime()-tick.getBase();
+            tick.stop();
+            tick.setVisibility(View.INVISIBLE);
+            //设置提示操作
+            TextView spell = (TextView) findViewById(R.id.spell);
+            spell.setText("收藏单词列表为空");
+            TextView continue_go = (TextView)findViewById(R.id.btn);
+            continue_go.setText("切换任务模式");
+            continue_go.setVisibility(View.VISIBLE);
+            PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        //加载任务模式单词库
+                        iniTodayWords();
+                        //ThirdFragment处切换为任务模式
+                        String[] res = getResources().getStringArray(R.array.recite_way);
+                        NiceSpinner spReciteWay = (NiceSpinner)findViewById(R.id.Sp_reciteWay);
+                        spReciteWay.setSelectedIndex(0);
+                        SecuritySP.EncryptSP(getApplicationContext(),"reciteWay",res[0]);
+                        //设置visible显示
+                        for (int i = 0; i < 4; i++) {
+                            items[i].setText("");
+                            items[i].setVisibility(View.VISIBLE);
+                        }
+                        voice.setVisibility(View.VISIBLE);
+                        ll1.setVisibility(View.VISIBLE);
+                        ll2.setVisibility(View.VISIBLE);
+                        llStar.setVisibility(View.VISIBLE);
+                        continue_go.setVisibility(View.INVISIBLE);
+                        tick.setVisibility(View.VISIBLE);
+                        //开始计时
+                        flag = 1;
+                        tick.setBase(SystemClock.elapsedRealtime()-(long)tempTime);
+                        tick.start();
+                        Log.d("MainActivity", "啊");
+                    } catch (GeneralSecurityException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            },0.8f);
         }
-        //从tempTotalList随机取nol个放进一个recycleList，（10个背完再背诵下一个recycleList），不满10个时就往里面依次添加totalList的元素
-        someOfTotal = GetRandomNum.getIntegers(nol,tempTotalList.size());
-        //
-        //···这里当tempTotalList中的数目小于10时还需要写一个判决条件，否则估计会报错、闪退
-        //···但是谁会测试到40个以上呢？所以先空着吧
-        //
-        recycleList = new ArrayList<>();
-        for (int i = 0; i < nol; i++) {
-            recycleList.add(tempTotalList.get(someOfTotal[i]));
-            //添加的同时初始化该单词所对应的星星数，并置为0，Key代表单词，value是储存星星数目的类
-            map.put(tempTotalList.get(someOfTotal[i]),new Star(0,0));
+        else {
+            //从tempTotalList随机取nol个放进一个recycleList，（10个背完再背诵下一个recycleList），不满10个时就往里面依次添加totalList的元素
+            someOfTotal = GetRandomNum.getIntegers(nol,tempTotalList.size());
+            recycleList = new ArrayList<>();
+            for (int i = 0; i < nol; i++) {
+                recycleList.add(tempTotalList.get(someOfTotal[i]));
+                //添加的同时初始化该单词所对应的星星数，并置为0，Key代表单词，value是储存星星数目的类
+                map.put(tempTotalList.get(someOfTotal[i]),new Star(0,0));
+            }
+            for (int i = 0; i < nol; i++) {
+                tempTotalList.remove(recycleList.get(i));//相当于把total移动十个到recycle
+            }
+            reciteProcess();
         }
-        for (int i = 0; i < nol; i++) {
-            tempTotalList.remove(recycleList.get(i));//相当于把total移动十个到recycle
-        }
-        reciteProcess();
     }
 
     //背诵流程

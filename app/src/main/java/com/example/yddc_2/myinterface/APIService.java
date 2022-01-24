@@ -67,6 +67,10 @@ public interface APIService {
     @POST("/user/getlist")//获取背单词列表
     Observable<WordList> getWordList(@Header("token") String token);
 
+    @FormUrlEncoded
+    @POST("/user/getmylist")//获取用户单词库
+    Observable<WordList> getMyWordList(@Header("token") String token,@Field("tag") int tag);
+
     @POST("user/getsetelement")//获取setting
     Observable<Setting> getSetting(@Header("token") String token);
 
@@ -74,7 +78,7 @@ public interface APIService {
     @POST("user/setelement")//修改setting,circ_way默认0，FieldMap：tag  watRem  phoRem   dayTime  list    numOfList    circWay
     Observable<ResponseBody> updateSetting(@Header("token") String token,@FieldMap Map<String, Object> setting);
 
-    @GET("/word/queryNumByTag")//获取单词本的总数
+    @GET("/word/queryNumByTag")//获取单词本的单词总数
     Observable<ResponseBody> getNumOfBook(@Query("tag") String tag);
 
     @POST("user/postdata")//提交背诵数据

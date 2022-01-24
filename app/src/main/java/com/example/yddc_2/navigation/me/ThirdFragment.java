@@ -129,18 +129,33 @@ public class ThirdFragment extends Fragment{
                 tag = setting.getData().getTag();//我的词典
                 watch = setting.getData().getWatRem();
                 phone = setting.getData().getPhoRem();
-                List<String> list = new ArrayList<>(Arrays.asList(res1));//用于确定下标顺序
+                List<String> list1 = new ArrayList<>(Arrays.asList(res1));//用于确定下标顺序
+                List<String> list2 = new ArrayList<>(Arrays.asList(res2));
+                //我的词典
                 if(tag.equals(""))//tag为空，说明刚注册，默认选第一个（“CET4”），并上传
                 {
                     tag=data1.get(0);
-                    spWordBook.setSelectedIndex(list.indexOf(tag));
+                    spWordBook.setSelectedIndex(list1.indexOf(tag));//这里注意：setSelectedIndex并不会触发监听器！！！
                     try {
                         updateSetting(tag,watch,phone);
                     } catch (GeneralSecurityException | IOException e) {
                         e.printStackTrace();
                     }
                 }
-                else spWordBook.setSelectedIndex(list.indexOf(tag));//否则勾选相应选项
+                else spWordBook.setSelectedIndex(list1.indexOf(tag));//否则勾选相应选项
+                //记忆模式
+                try {
+                    String value = SecuritySP.DecryptSP(getContext(),"reciteWay");//从本地读取该设置
+                    if(value.equals("")){//说明第一次登陆，默认设置为第一个模式，即“任务模式”
+                        SecuritySP.EncryptSP(getContext(),"reciteWay",data2.get(0));//保存在本地
+                        spReciteWay.setSelectedIndex(0);//设置选项
+                    }
+                    else spReciteWay.setSelectedIndex(list2.indexOf(value));
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
+                spReciteWay.getSelectedItem();
+                //手表提醒
                 if(watch==1) sbWatch.setChecked(true);
                 sbWatch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -154,6 +169,7 @@ public class ThirdFragment extends Fragment{
                         }
                     }
                 });
+                //手机提醒
                 if(phone==1) sbPhone.setChecked(true);
                 sbPhone.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -191,6 +207,17 @@ public class ThirdFragment extends Fragment{
         spReciteWay.setOnSpinnerItemSelectedListener(new OnSpinnerItemSelectedListener() {
             @Override
             public void onItemSelected(NiceSpinner parent, View view, int position, long id) {
+                try {
+                    //保存到本地
+                    SecuritySP.EncryptSP(getContext(),"reciteWay",data2.get(position));
+                    //重新加载相应的单词库
+                    MainActivity mainActivity = (MainActivity)getActivity();
+                    assert mainActivity != null;
+                    if (position==0) mainActivity.iniTodayWords();//任务模式
+                    else if (position==1)mainActivity.iniMyWords();//收藏模式
+                } catch (GeneralSecurityException | IOException e) {
+                    e.printStackTrace();
+                }
                 Toast.makeText(requireActivity(), data2.get(position), Toast.LENGTH_SHORT).show();
             }
         });

@@ -281,7 +281,7 @@
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
                         android:padding="5dp"
-                        android:text="默认模式"
+                        android:text="记忆模式"
                         android:textSize="14sp" />
 
                     <org.angmarch.views.NiceSpinner

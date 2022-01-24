@@ -114,7 +114,7 @@ public class FirstFragment extends Fragment {
                         //在这里来写你需要刷新的地方
                         try {
                             initSettings();//在ThirdFragment更新单词本后执行
-                            Log.d("FirstFragment", "通知到位");
+                            //Log.d("FirstFragment", "通知到位");
                         } catch (GeneralSecurityException | IOException e) {
                             e.printStackTrace();
                         }
@@ -171,9 +171,21 @@ public class FirstFragment extends Fragment {
                 String jsonStr = gson.toJson(set);
                 try {
                     SecuritySP.EncryptSP(getContext(),"setting",jsonStr);
+                    //根据ThirdFragment的reciteWay加载相应记忆模式的词库
+                    String[] res_ = getResources().getStringArray(R.array.recite_way);
+                    String value = SecuritySP.DecryptSP(getContext(),"reciteWay");
                     MainActivity mainActivity = (MainActivity)getActivity();
                     assert mainActivity != null;
-                    mainActivity.iniTodayWords();
+                    if (value.equals(res_[0])||value.equals(""))//为空的话说明第一次登陆，默认任务模式
+                    {
+                        mainActivity.iniTodayWords();
+                        //Log.d("FirstFragment", "here");
+                    }
+                    else {//收藏模式
+                        mainActivity.iniMyWords();;
+                        //Log.d("FirstFragment", "there");
+                    }
+
                 } catch (GeneralSecurityException | IOException e) {
                     e.printStackTrace();
                 }
