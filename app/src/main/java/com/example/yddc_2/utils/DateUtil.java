@@ -28,4 +28,16 @@ public class DateUtil {
         return sdf.format(new Date());
     }
 
+    //12:30:23或07:30形式的字符串转换秒数
+    public static int toSeconds(String s){
+        String[] t = s.split(":");
+        int ret = 0;
+        if (t.length==2) ret = Integer.parseInt(t[0])*60+Integer.parseInt(t[1]);
+        else if (t.length==3)
+            ret = Integer.parseInt(t[0])*60*60
+                    +Integer.parseInt(t[1])*60
+                    +Integer.parseInt(t[2]);
+        return ret;
+    }
+
 }
