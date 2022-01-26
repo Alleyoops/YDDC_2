@@ -78,8 +78,8 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 //0:生词本，1：无需再背，2.熟悉单词(已背)，3：三次全错，4:手动添加的收藏。（3是自动添加的收藏，收藏包括已复习和未复习）
 public class MainActivity extends AppCompatActivity implements  ActivityCompat.OnRequestPermissionsResultCallback {
-    private int pos = 0;//记录哪一页
-    private int flag = 0;//bottomSheet展开为1
+    private static int pos = 0;//记录哪一页
+    private static int flag = 0;//bottomSheet展开为1
     //以下四个list要理清关系
     public static List<WordList.DataDTO> totalList_1;//比如通过链接获取到的今天的50个单词，每次背诵完后需要提交数据（更新totalList中单词的tag值）（此外totalList只是在用户注册后设置每日任务单词数前默认是50个）
     public static List<WordList.DataDTO> tempTotalList;//tempTotalList的初始值是totalList中tag为0的所有单词，每生成一个recycleList，它就减去10个，recycleList每更新一个，它就减去一个
@@ -334,7 +334,9 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                                 currentDay.setTime(new Date());
                                 currentDay.set(Calendar.HOUR_OF_DAY, 0);
                                 currentDay.set(Calendar.MINUTE, 0);
-                                String day = String.valueOf(currentDay.getTime().getTime());
+                                currentDay.set(Calendar.SECOND,0);
+                                currentDay.set(Calendar.MILLISECOND,0);
+                                String day = String.valueOf(currentDay.getTimeInMillis());
                                 Log.d("MainActivity", "tempTime:" + tempTime);
                                 trdList.add(new RequestData.TimeRecordDTO(day,(int)DateUtil.toSeconds(tick.getText().toString())));
                                 data.setTime_record(trdList);
@@ -390,8 +392,10 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
 
     //加载收藏模式单词,tag=3,4
     public void iniMyWords() throws GeneralSecurityException, IOException {
+        Log.d("MainActivity", "开始");
+        flag = 0;
         //获取tag（此处tag为3和4，即错三次自动收藏的和手动收藏的）
-        int tag1 = 3;//三次全错
+        int tag1 = 1;//三次全错
         int tag2 = 4;//手动收藏
         int[] tags = {tag1,tag2};
         //totalList_2的初始化
@@ -400,51 +404,62 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         APIService service = GetNetService.GetApiService();
         String token = SecuritySP.DecryptSP(this,"token");
         //map方式:
-//        Observable.just(tags[0],tags[1])
-//                .map(new Func1<Integer, String>() {
-//                    @Override
-//                    public String call(Integer integer) {
-//                        Log.d("MainActivity", "integer:" + integer);
-//                        service.getMyWordList(token,integer).subscribeOn(Schedulers.io())
-//                                .observeOn(AndroidSchedulers.mainThread())
-//                                .subscribe(new Action1<WordList>() {
-//                                    @Override
-//                                    public void call(WordList wordList) {
-//                                        Log.d("MainActivity", new Gson().toJson(wordList));
-//                                    }
-//                                });
-//                        return "第"+integer+"个";
-//                    }
-//                })
-//                .subscribe(new Action1<String>() {
-//                    @Override
-//                    public void call(String string) {
-//                        Log.d("MainActivity", string);
-//                    }
-//                });
-        //flatmap方式:
         Observable.just(tags[0],tags[1])
-                .flatMap(new Func1<Integer, Observable<WordList>>() {
+                .map(new Func1<Integer, WordList.DataDTO>() {
                     @Override
-                    public Observable<WordList> call(Integer integer) {
-                        return service.getMyWordList(token,integer);
+                    public WordList.DataDTO call(Integer integer) {
+                        service.getMyWordList(token,integer).subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Action1<WordList>() {
+                                    @Override
+                                    public void call(WordList wordList) {
+                                        totalList_2.addAll(wordList.getData());
+                                        Log.d("MainActivity", wordList.getData().size()+"||"+new Gson().toJson(wordList));
+                                        if (integer==4)//顺序轮到最后一个，说明需要的请求完毕了，可以开始下一步
+                                        {
+                                            // 判决条件要改
+                                            // 默认CET4选择的地方也要改，包括两个Fragment
+
+
+
+
+
+
+                                                Log.d("MainActivity", "totalList_2.size():" + totalList_2.size());
+                                                //reciteOfWay(totalList_2);
+                                        }
+                                    }
+                                });
+                        return null;
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<WordList>() {
+                .subscribe(new Action1<WordList.DataDTO>() {
                     @Override
-                    public void call(WordList wordList) {
-                        Log.d("MainActivity", new Gson().toJson(wordList));
-                        totalList_2.clear();//先清空list
-                        totalList_2.addAll(wordList.getData());
+                    public void call(WordList.DataDTO dataDTO) {
                     }
                 });
-        reciteOfWay(totalList_2);
+        //flatmap方式:
+//        Observable.just(tags[0],tags[1])
+//                .flatMap(new Func1<Integer, Observable<WordList>>() {
+//                    @Override
+//                    public Observable<WordList> call(Integer integer) {
+//                        return service.getMyWordList(token,integer);
+//                    }
+//                })
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Action1<WordList>() {
+//                    @Override
+//                    public void call(WordList wordList) {
+//                        Log.d("MainActivity", new Gson().toJson(wordList));
+//                        totalList_2.addAll(wordList.getData());
+//                    }
+//                });
         }
 
     //加载任务模式单词,tag=0
     public void iniTodayWords() throws GeneralSecurityException, IOException {
+        flag = 0;
         MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 //        Calendar calendar = Calendar.getInstance();
 //        String today = String.valueOf(calendar.get(Calendar.DAY_OF_MONTH));
@@ -462,21 +477,6 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                     //放进一个可以方便增删的list
                     totalList_1 = wordList.getData();
                     reciteOfWay(totalList_1);
-
-                    //手动撸一个wordlist来测试切换收藏的visible、list2.addAll累加问题、收藏单词结束后继续挑战的button处理
-
-
-
-
-
-
-
-
-
-
-
-
-
                 } catch (GeneralSecurityException | IOException e) {
                     e.printStackTrace();
                 }
@@ -582,9 +582,25 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         TextView item2 = (TextView) findViewById(R.id.item2);
         TextView item3 = (TextView) findViewById(R.id.item3);
         TextView item4 = (TextView) findViewById(R.id.item4);
+        TextView[] items = new TextView[]{item1,item2,item3,item4};
+        LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
+        LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
+        LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
+        TextView continue_go = (TextView)findViewById(R.id.btn);
+        //假设是刚背完一轮，很多组件已经是invisible，所以需要先设置visible
+        voice.setVisibility(View.VISIBLE);
+        tick.setVisibility(View.VISIBLE);
+        for (int i = 0; i < 4; i++) {
+            items[i].setVisibility(View.VISIBLE);
+        }
+        ll2.setVisibility(View.VISIBLE);
+        ll1.setVisibility(View.VISIBLE);
+        llStar.setVisibility(View.VISIBLE);
+        continue_go.setVisibility(View.INVISIBLE);
+
         //从10个随机取四个
         Integer[] integers = new Integer[0];int rightIndex = 0;
-        TextView[] items = new TextView[]{item1,item2,item3,item4};
+
         if(recycleList.size()>=4)
         {
             integers = GetRandomNum.getIntegers(4,recycleList.size());
@@ -605,12 +621,8 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                 //recycle等于0的时候，即背诵任务完成
                 if(recycleList.size()==0)
                 {
-                    LinearLayout ll1 = (LinearLayout)findViewById(R.id.ll_1);
-                    LinearLayout ll2 = (LinearLayout)findViewById(R.id.ll_2);
-                    LinearLayout llStar = (LinearLayout)findViewById(R.id.ll_star);
-
                     spell.setText("今日任务已完成");
-                    TextView continue_go = (TextView)findViewById(R.id.btn);
+                    continue_go.setText("继续挑战");
                     continue_go.setVisibility(View.VISIBLE);
 
                     //提交背诵数据
@@ -620,12 +632,12 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                     currentDay.setTime(new Date());
                     currentDay.set(Calendar.HOUR_OF_DAY, 0);
                     currentDay.set(Calendar.MINUTE, 0);
-                    String day = String.valueOf(currentDay.getTime().getTime());
+                    currentDay.set(Calendar.SECOND,0);
+                    currentDay.set(Calendar.MILLISECOND,0);
+                    String day = String.valueOf(currentDay.getTimeInMillis());
                     trdList.add(new RequestData.TimeRecordDTO(day,DateUtil.toSeconds(tick.getText().toString())));
                     data.setTime_record(trdList);
                     tempTime = SystemClock.elapsedRealtime()-tick.getBase();
-//                    Log.d("MainActivity", "tempTime:" + tempTime);
-//                    Log.d("MainActivity", new Gson().toJson(data));
                     commit(data);
                     //提交后清空缓存
                     trdList.clear();
@@ -965,6 +977,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                             JsonObject jsonObject = JsonParser.parseString(responseBody.string()).getAsJsonObject();
                             int state = jsonObject.get("state").getAsInt();
                             Toast.makeText(MainActivity.this, "state:" + state, Toast.LENGTH_SHORT).show();
+                            Log.d("MainActivity", new Gson().toJson(jsonObject));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

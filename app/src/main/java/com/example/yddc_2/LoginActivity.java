@@ -154,7 +154,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         return retrofit.create(APIService.class);
     }
     private void LoginByPwd(String ph,String pwd){
-        Observable<ResponseBody> observable = GetApiService().load("1",pwd,ph);
+        Observable<ResponseBody> observable = GetApiService().load(ph,pwd,ph);
         observable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ResponseBody>() {

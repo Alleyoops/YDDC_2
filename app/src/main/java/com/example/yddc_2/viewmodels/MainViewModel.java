@@ -55,7 +55,11 @@ public class MainViewModel extends ViewModel {
                         {
                             Toast.makeText(context, "getWordList->"+"wordList.getState():" + wordList.getState().toString(), Toast.LENGTH_SHORT).show();
                         }
-                        else mWordList.setValue(wordList);
+                        else
+                        {
+                            Log.d("MainViewModel", "获取一次单词列表");
+                            mWordList.setValue(wordList);
+                        }
                     }
                 });
     }
