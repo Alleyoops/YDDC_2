@@ -68,6 +68,9 @@ import java.util.Objects;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -305,15 +308,9 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                             try {
                                 String[] res = getResources().getStringArray(R.array.recite_way);
                                 String value = SecuritySP.DecryptSP(getApplicationContext(),"reciteWay");
-                                if(tempTotalList.size()==0&&value.equals(res[1])){
-                                    tick.setVisibility(View.INVISIBLE);
-                                }
-                                //开始计时
-                                else {
                                     tick.setVisibility(View.VISIBLE);
                                     tick.setBase(SystemClock.elapsedRealtime());
                                     tick.start();
-                                }
                             } catch (GeneralSecurityException | IOException e) {
                                 e.printStackTrace();
                             }
@@ -392,73 +389,49 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
 
     //加载收藏模式单词,tag=3,4
     public void iniMyWords() throws GeneralSecurityException, IOException {
+        //收藏模式的spell颜色为黄色，嘻嘻嘻
+        TextView spell = (TextView)findViewById(R.id.spell);
+        spell.setTextColor(getResources().getColor(R.color.item));
         Log.d("MainActivity", "开始");
         flag = 0;
         //获取tag（此处tag为3和4，即错三次自动收藏的和手动收藏的）
-        int tag1 = 1;//三次全错
-        int tag2 = 4;//手动收藏
-        int[] tags = {tag1,tag2};
+        Integer[] tags = {3,4};//3:三次全错；4:手动收藏
         //totalList_2的初始化
         totalList_2 = new ArrayList<>();
         //得到实现相应接口的APIService
         APIService service = GetNetService.GetApiService();
         String token = SecuritySP.DecryptSP(this,"token");
-        //map方式:
-        Observable.just(tags[0],tags[1])
-                .map(new Func1<Integer, WordList.DataDTO>() {
+        //请求单词
+        service.getMyWordList(token,tags[0])
+                .flatMap(new Func1<WordList, Observable<WordList>>() {
                     @Override
-                    public WordList.DataDTO call(Integer integer) {
-                        service.getMyWordList(token,integer).subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new Action1<WordList>() {
-                                    @Override
-                                    public void call(WordList wordList) {
-                                        totalList_2.addAll(wordList.getData());
-                                        Log.d("MainActivity", wordList.getData().size()+"||"+new Gson().toJson(wordList));
-                                        if (integer==4)//顺序轮到最后一个，说明需要的请求完毕了，可以开始下一步
-                                        {
-                                            // 判决条件要改
-                                            // 默认CET4选择的地方也要改，包括两个Fragment
-
-
-
-
-
-
-                                                Log.d("MainActivity", "totalList_2.size():" + totalList_2.size());
-                                                //reciteOfWay(totalList_2);
-                                        }
-                                    }
-                                });
-                        return null;
+                    public Observable<WordList> call(WordList wordList) {
+                        totalList_2.addAll(wordList.getData());
+                        Log.d("MainActivity", wordList.getData().size()+"*"+new Gson().toJson(wordList));
+                        return service.getMyWordList(token,tags[1]);
                     }
                 })
-                .subscribe(new Action1<WordList.DataDTO>() {
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<WordList>() {
                     @Override
-                    public void call(WordList.DataDTO dataDTO) {
+                    public void call(WordList wordList) {
+                        totalList_2.addAll(wordList.getData());
+                        Log.d("MainActivity", wordList.getData().size()+"**"+new Gson().toJson(wordList));
+                        try {
+                            reciteOfWay(totalList_2);
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
-        //flatmap方式:
-//        Observable.just(tags[0],tags[1])
-//                .flatMap(new Func1<Integer, Observable<WordList>>() {
-//                    @Override
-//                    public Observable<WordList> call(Integer integer) {
-//                        return service.getMyWordList(token,integer);
-//                    }
-//                })
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Action1<WordList>() {
-//                    @Override
-//                    public void call(WordList wordList) {
-//                        Log.d("MainActivity", new Gson().toJson(wordList));
-//                        totalList_2.addAll(wordList.getData());
-//                    }
-//                });
         }
 
     //加载任务模式单词,tag=0
     public void iniTodayWords() throws GeneralSecurityException, IOException {
+        //收藏模式的spell颜色为绿色，嘻嘻嘻
+        TextView spell = (TextView)findViewById(R.id.spell);
+        spell.setTextColor(getResources().getColor(R.color.teal_200));
         flag = 0;
         MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 //        Calendar calendar = Calendar.getInstance();
@@ -495,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         tempTotalList = TotalList;
 
         //如果单词list数目不够（即收藏单词数为0），则给出提示
-        if (tempTotalList.size()==0)
+        if (tempTotalList.size()==0)//两种情况为0，一是收藏词库为0，二是陌生单词库为0即单词本背完，分别给予不同的处理
         {
             //设置invisible
             TextView voice = (TextView) findViewById(R.id.voice);
@@ -522,54 +495,89 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
             tick.setVisibility(View.INVISIBLE);
             //设置提示操作
             TextView spell = (TextView) findViewById(R.id.spell);
-            spell.setText("收藏单词列表为空");
             TextView continue_go = (TextView)findViewById(R.id.btn);
-            continue_go.setText("切换任务模式");
-            continue_go.setVisibility(View.VISIBLE);
-            PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        //加载任务模式单词库
-                        iniTodayWords();
-                        //ThirdFragment处切换为任务模式
-                        String[] res = getResources().getStringArray(R.array.recite_way);
-                        NiceSpinner spReciteWay = (NiceSpinner)findViewById(R.id.Sp_reciteWay);
-                        spReciteWay.setSelectedIndex(0);
-                        SecuritySP.EncryptSP(getApplicationContext(),"reciteWay",res[0]);
-                        //设置visible显示
-                        for (int i = 0; i < 4; i++) {
-                            items[i].setText("");
-                            items[i].setVisibility(View.VISIBLE);
+            String value = SecuritySP.DecryptSP(this,"reciteWay");
+            String[] res_ = getResources().getStringArray(R.array.recite_way);
+            if (value.equals(res_[0]))//任务模式
+            {
+                spell.setText("恭喜你，所有单词已背完");
+//                continue_go.setText("切换单词本");
+//                continue_go.setVisibility(View.VISIBLE);
+                /*
+                  continue_go这个btn，两个解决思路
+                  1、切换单词本，例如CET4切换CET6再重新iniTodayWords
+                  2、btn不显示，什么都不做，用户下拉后自行决定更换单词本或更换为收藏模式
+                 */
+            }
+            if (value.equals(res_[1]))//收藏模式
+            {
+                spell.setText("收藏单词列表为空");
+                continue_go.setText("切换任务模式");
+                continue_go.setVisibility(View.VISIBLE);
+                //点击切换任务模式
+                PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            //加载任务模式单词库
+                            iniTodayWords();
+                            //ThirdFragment处和底部栏处的显示切换为任务模式
+                            String[] res = getResources().getStringArray(R.array.recite_way);
+                            NiceSpinner spReciteWay = (NiceSpinner)findViewById(R.id.Sp_reciteWay);
+                            spReciteWay.setSelectedIndex(0);
+                            SecuritySP.EncryptSP(getApplicationContext(),"reciteWay",res[0]);
+                            TextView way = (TextView)findViewById(R.id.tv_way);
+                            way.setText(res[0]);
+                            //设置visible显示
+                            for (int i = 0; i < 4; i++) {
+                                items[i].setText("");
+                                items[i].setVisibility(View.VISIBLE);
+                            }
+                            voice.setVisibility(View.VISIBLE);
+                            ll1.setVisibility(View.VISIBLE);
+                            ll2.setVisibility(View.VISIBLE);
+                            llStar.setVisibility(View.VISIBLE);
+                            continue_go.setVisibility(View.INVISIBLE);
+                            tick.setVisibility(View.VISIBLE);
+                            //开始计时
+                            flag = 1;
+                            tick.setBase(SystemClock.elapsedRealtime());
+                            tick.start();
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
                         }
-                        voice.setVisibility(View.VISIBLE);
-                        ll1.setVisibility(View.VISIBLE);
-                        ll2.setVisibility(View.VISIBLE);
-                        llStar.setVisibility(View.VISIBLE);
-                        continue_go.setVisibility(View.INVISIBLE);
-                        tick.setVisibility(View.VISIBLE);
-                        //开始计时
-                        flag = 1;
-                        tick.setBase(SystemClock.elapsedRealtime());
-                        tick.start();
-                    } catch (GeneralSecurityException | IOException e) {
-                        e.printStackTrace();
                     }
-                }
-            },0.8f);
+                },0.8f);
+            }
+
         }
         else {
-            //从tempTotalList随机取nol个放进一个recycleList，（10个背完再背诵下一个recycleList），不满10个时就往里面依次添加totalList的元素
-            someOfTotal = GetRandomNum.getIntegers(nol,tempTotalList.size());
             recycleList = new ArrayList<>();
-            for (int i = 0; i < nol; i++) {
-                recycleList.add(tempTotalList.get(someOfTotal[i]));
-                //添加的同时初始化该单词所对应的星星数，并置为0，Key代表单词，value是储存星星数目的类
-                map.put(tempTotalList.get(someOfTotal[i]),new Star(0,0));
+            //从tempTotalList随机取nol个放进一个recycleList，（nol个背完再背诵下一个recycleList），不满nol个时就往里面依次添加totalList的元素
+            //可能会出现tempTotalList.size()小于nol的情况，比如收藏的单词数只有3个，而nol最低为5，显然就算天王老爷来了也无法从3个里面随机选出5个
+            if (nol<=tempTotalList.size())
+            {
+                someOfTotal = GetRandomNum.getIntegers(nol,tempTotalList.size());
+                for (int i = 0; i < nol; i++) {
+                    recycleList.add(tempTotalList.get(someOfTotal[i]));
+                    //添加的同时初始化该单词所对应的星星数，并置为0，Key代表单词，value是储存星星数目的类
+                    map.put(tempTotalList.get(someOfTotal[i]),new Star(0,0));
+                }
+                for (int i = 0; i < nol; i++) {
+                    tempTotalList.remove(recycleList.get(i));//相当于把total移动十个到recycle
+                }
             }
-            for (int i = 0; i < nol; i++) {
-                tempTotalList.remove(recycleList.get(i));//相当于把total移动十个到recycle
+            else
+            {
+                someOfTotal = GetRandomNum.getIntegers(tempTotalList.size(),tempTotalList.size());
+                for (int i = 0; i < tempTotalList.size(); i++) {
+                    recycleList.add(tempTotalList.get(someOfTotal[i]));
+                    //添加的同时初始化该单词所对应的星星数，并置为0，Key代表单词，value是储存星星数目的类
+                    map.put(tempTotalList.get(someOfTotal[i]),new Star(0,0));
+                }
+                tempTotalList.clear();
             }
+            //开启背诵流程
             reciteProcess();
         }
     }
@@ -600,7 +608,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
 
         //从10个随机取四个
         Integer[] integers = new Integer[0];int rightIndex = 0;
-
+        Log.d("MainActivity", "recycleList.size():" + recycleList.size());
         if(recycleList.size()>=4)
         {
             integers = GetRandomNum.getIntegers(4,recycleList.size());
@@ -618,13 +626,13 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
             }
         }
         else {
+                String value = SecuritySP.DecryptSP(this,"reciteWay");
+                String[] res__ = getResources().getStringArray(R.array.recite_way);
                 //recycle等于0的时候，即背诵任务完成
+                //此时也分两种情况，一是任务模式背完，二是收藏模式背完
                 if(recycleList.size()==0)
                 {
-                    spell.setText("今日任务已完成");
-                    continue_go.setText("继续挑战");
-                    continue_go.setVisibility(View.VISIBLE);
-
+                    //两种模式背完后的统一处理
                     //提交背诵数据
                     data.setWord_record(wrdList);
                     // 获取当天零点零分零秒的时间戳
@@ -642,7 +650,6 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                     //提交后清空缓存
                     trdList.clear();
                     wrdList.clear();
-
                     for (int i = 0; i < 4; i++) {
                         items[i].setText("");
                         items[i].setVisibility(View.INVISIBLE);
@@ -659,33 +666,83 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                     //设置手表时间
                     TextView watch = (TextView)findViewById(R.id.watch);
                     watch.setText(tick.getText());
-
-                    PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            try {
-                                iniTodayWords();
-                                for (int i = 0; i < 4; i++) {
-                                    items[i].setText("");
-                                    items[i].setVisibility(View.VISIBLE);
+                    tick.setBase(SystemClock.elapsedRealtime());
+                    if (value.equals(res__[0]))//任务模式背完
+                    {
+                        //任务模式”继续挑战“
+                        spell.setText("今日任务已完成");
+                        continue_go.setText("继续挑战");
+                        continue_go.setVisibility(View.VISIBLE);
+                        PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                try {
+                                    iniTodayWords();
+                                    for (int i = 0; i < 4; i++) {
+                                        items[i].setText("");
+                                        items[i].setVisibility(View.VISIBLE);
+                                    }
+                                    voice.setVisibility(View.VISIBLE);
+                                    ll1.setVisibility(View.VISIBLE);
+                                    ll2.setVisibility(View.VISIBLE);
+                                    llStar.setVisibility(View.VISIBLE);
+                                    tick.setVisibility(View.VISIBLE);
+                                    //开始计时
+                                    flag = 1;
+                                    tick.setBase(SystemClock.elapsedRealtime());
+                                    tick.start();
+                                    continue_go.setVisibility(View.INVISIBLE);
+                                } catch (GeneralSecurityException | IOException e) {
+                                    e.printStackTrace();
                                 }
-                                voice.setVisibility(View.VISIBLE);
-                                ll1.setVisibility(View.VISIBLE);
-                                ll2.setVisibility(View.VISIBLE);
-                                llStar.setVisibility(View.VISIBLE);
-                                tick.setVisibility(View.VISIBLE);
-                                //开始计时
-                                flag = 1;
-                                tick.setBase(SystemClock.elapsedRealtime());
-                                tick.start();
-                                continue_go.setVisibility(View.INVISIBLE);
-                            } catch (GeneralSecurityException | IOException e) {
-                                e.printStackTrace();
                             }
+                        },0.8f);
+                        return;
+
+                    }
+                    else if (value.equals(res__[1]))//收藏模式背完
+                    {
+                        //那就切换为任务模式
+                spell.setText("已复习完所有收藏单词");
+                continue_go.setText("切换任务模式");
+                continue_go.setVisibility(View.VISIBLE);
+                //点击切换任务模式
+                PressAnimUtil.addScaleAnimition(continue_go, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            //加载任务模式单词库
+                            iniTodayWords();
+                            //ThirdFragment处和底部栏处的显示切换为任务模式
+                            String[] res = getResources().getStringArray(R.array.recite_way);
+                            NiceSpinner spReciteWay = (NiceSpinner)findViewById(R.id.Sp_reciteWay);
+                            spReciteWay.setSelectedIndex(0);
+                            SecuritySP.EncryptSP(getApplicationContext(),"reciteWay",res[0]);
+                            TextView way = (TextView)findViewById(R.id.tv_way);
+                            way.setText(res[0]);
+                            //设置visible显示
+                            for (int i = 0; i < 4; i++) {
+                                items[i].setText("");
+                                items[i].setVisibility(View.VISIBLE);
+                            }
+                            voice.setVisibility(View.VISIBLE);
+                            ll1.setVisibility(View.VISIBLE);
+                            ll2.setVisibility(View.VISIBLE);
+                            llStar.setVisibility(View.VISIBLE);
+                            continue_go.setVisibility(View.INVISIBLE);
+                            tick.setVisibility(View.VISIBLE);
+                            //开始计时
+                            flag = 1;
+                            tick.setBase(SystemClock.elapsedRealtime());
+                            tick.start();
+                        } catch (GeneralSecurityException | IOException e) {
+                            e.printStackTrace();
                         }
-                    },0.8f);
-                    return;
-                }
+                    }
+                },0.8f);
+                        return;
+            }
+                    }
                 //recycle小于4的时候
                 integers = GetRandomNum.getIntegers(recycleList.size(), recycleList.size());
                 //size个选项随机选取一个作为正确答案

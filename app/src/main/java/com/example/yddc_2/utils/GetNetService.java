@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class GetNetService {
     public static APIService GetApiService(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://youdian.asedrfa.top")
+                .baseUrl("http://youdian.asedrfa.top/")
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();

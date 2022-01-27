@@ -152,36 +152,27 @@ public class FirstFragment extends Fragment {
             public void onChanged(Setting setting) {
                 set = setting;
                 String tag = setting.getData().getTag();//单词本tag
-
-                /*
-                如果tag为空，说明刚注册，那么无法获取到单词数目，所以把tag置为默认第一个单词本选项，即“CET4”；
-                这里tag改成“CET4”后不需要上传，只是方便此处直接获取到单词库数目；
-                tag的默认修改值在ThirdFragment处上传
-                 */
-                String[] res = getResources().getStringArray(R.array.word_book);
-                List<String> data = new LinkedList<>(Arrays.asList(res));
-                if (tag.equals("")) {
-                    tag=data.get(0);
-                    //并修改set里的tag
-                    set.getData().setTag(tag);
-                }
-
-                //把修改tag后的setting保存到本地，MainActivity的reciteOfWork()会用到
                 Gson gson = new Gson();
                 String jsonStr = gson.toJson(set);
                 try {
+                    //把setting保存到本地
                     SecuritySP.EncryptSP(getContext(),"setting",jsonStr);
                     //根据ThirdFragment的reciteWay加载相应记忆模式的词库
                     String[] res_ = getResources().getStringArray(R.array.recite_way);
                     String value = SecuritySP.DecryptSP(getContext(),"reciteWay");
                     MainActivity mainActivity = (MainActivity)getActivity();
                     assert mainActivity != null;
-                    if (value.equals(res_[0])||value.equals(""))//为空的话说明第一次登陆，默认任务模式
+                    if(value.equals("")){//说明第一次登陆，默认设置为第一个模式，即“任务模式”
+                        value = res_[0];
+                        SecuritySP.EncryptSP(getContext(),"reciteWay",value);//保存在本地
+                    }
+                    if (value.equals(res_[0]))//任务模式
                     {
+
                         mainActivity.iniTodayWords();
                         //Log.d("FirstFragment", "here");
                     }
-                    else {//收藏模式
+                    else if (value.equals(res_[1])){//收藏模式
                         mainActivity.iniMyWords();;
                         //Log.d("FirstFragment", "there");
                     }

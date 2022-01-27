@@ -109,7 +109,7 @@ public class ThirdFragment extends Fragment{
         //initSetting
         String[] res1 = getResources().getStringArray(R.array.word_book);
         String[] res2 = getResources().getStringArray(R.array.recite_way);
-        List<String> data1 = new LinkedList<>(Arrays.asList(res1));
+        List<String> data1 = new LinkedList<>(Arrays.asList(res1));//用于确定下标顺序
         List<String> data2 = new LinkedList<>(Arrays.asList(res2));
         //词典：CET4/CET6/高中/考研/GRE/TOEFL/IELTS
         NiceSpinner spWordBook = binding.SpWordBook;
@@ -129,28 +129,25 @@ public class ThirdFragment extends Fragment{
                 tag = setting.getData().getTag();//我的词典
                 watch = setting.getData().getWatRem();
                 phone = setting.getData().getPhoRem();
-                List<String> list1 = new ArrayList<>(Arrays.asList(res1));//用于确定下标顺序
-                List<String> list2 = new ArrayList<>(Arrays.asList(res2));
+//                List<String> list1 = new ArrayList<>(Arrays.asList(res1));
+//                List<String> list2 = new ArrayList<>(Arrays.asList(res2));
                 //我的词典
-                if(tag.equals(""))//tag为空，说明刚注册，默认选第一个（“CET4”），并上传
-                {
-                    tag=data1.get(0);
-                    spWordBook.setSelectedIndex(list1.indexOf(tag));//这里注意：setSelectedIndex并不会触发监听器！！！
-                    try {
-                        updateSetting(tag,watch,phone);
-                    } catch (GeneralSecurityException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else spWordBook.setSelectedIndex(list1.indexOf(tag));//否则勾选相应选项
+                spWordBook.setSelectedIndex(data1.indexOf(tag));//勾选相应选项,这里注意：setSelectedIndex并不会触发监听器！！！
                 //记忆模式
                 try {
                     String value = SecuritySP.DecryptSP(getContext(),"reciteWay");//从本地读取该设置
                     if(value.equals("")){//说明第一次登陆，默认设置为第一个模式，即“任务模式”
-                        SecuritySP.EncryptSP(getContext(),"reciteWay",data2.get(0));//保存在本地
-                        spReciteWay.setSelectedIndex(0);//设置选项
+                        value = data2.get(0);
+                        spReciteWay.setSelectedIndex(data2.indexOf(value));//设置选项
+                        TextView tv_way = (TextView) requireActivity().findViewById(R.id.tv_way);//设置底部栏"记忆模式"的显示
+                        tv_way.setText(value);
                     }
-                    else spReciteWay.setSelectedIndex(list2.indexOf(value));
+                    else
+                    {
+                        spReciteWay.setSelectedIndex(data2.indexOf(value));
+                        TextView tv_way = (TextView) requireActivity().findViewById(R.id.tv_way);//设置底部栏"记忆模式"的显示
+                        tv_way.setText(value);
+                    }
                 } catch (GeneralSecurityException | IOException e) {
                     e.printStackTrace();
                 }
@@ -210,6 +207,9 @@ public class ThirdFragment extends Fragment{
                 try {
                     //保存到本地
                     SecuritySP.EncryptSP(getContext(),"reciteWay",data2.get(position));
+                    //设置底部栏“记忆模式”的显示
+                    TextView way = (TextView) requireActivity().findViewById(R.id.tv_way);
+                    way.setText(data2.get(position));
                     //重新加载相应的单词库
                     MainActivity mainActivity = (MainActivity)getActivity();
                     assert mainActivity != null;

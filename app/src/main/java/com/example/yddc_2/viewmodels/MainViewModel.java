@@ -46,7 +46,7 @@ public class MainViewModel extends ViewModel {
                     @Override
                     public void onError(Throwable e) {
                         Toast.makeText(context, "getWordList: onError", Toast.LENGTH_SHORT).show();
-                        //Log.d("MainViewModel", "e:" + e);
+                        Log.d("MainViewModel", "e:" + e);
                     }
 
                     @Override
@@ -57,7 +57,7 @@ public class MainViewModel extends ViewModel {
                         }
                         else
                         {
-                            Log.d("MainViewModel", "获取一次单词列表");
+                            //Log.d("MainViewModel", "获取一次单词列表");
                             mWordList.setValue(wordList);
                         }
                     }
