@@ -18,6 +18,7 @@ import androidx.databinding.DataBindingUtil;
 
 import com.example.yddc_2.databinding.ActivityLoginBinding;
 import com.example.yddc_2.myinterface.APIService;
+import com.example.yddc_2.utils.DeviceIdUtil;
 import com.example.yddc_2.utils.HideBar;
 import com.example.yddc_2.utils.MyHandler;
 import com.example.yddc_2.utils.SecuritySP;
@@ -154,7 +155,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         return retrofit.create(APIService.class);
     }
     private void LoginByPwd(String ph,String pwd){
-        Observable<ResponseBody> observable = GetApiService().load(ph,pwd,ph);
+        //获取设备唯一标识（因为后端需要1开头）
+        String devId = 1+DeviceIdUtil.getDeviceId(this);
+        Observable<ResponseBody> observable = GetApiService().load(devId,pwd,ph);
         observable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ResponseBody>() {

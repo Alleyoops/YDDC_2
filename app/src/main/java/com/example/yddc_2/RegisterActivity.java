@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.example.yddc_2.databinding.ActivityRegisterBinding;
 import com.example.yddc_2.myinterface.APIService;
+import com.example.yddc_2.utils.DeviceIdUtil;
 import com.example.yddc_2.utils.HideBar;
 import com.example.yddc_2.utils.SecuritySP;
 import com.google.gson.JsonElement;
@@ -229,7 +230,9 @@ public class RegisterActivity extends AppCompatActivity{
         });
     }
     private void LoginByPwd(String ph,String pwd){
-        Observable<ResponseBody> observable = GetApiService().load(ph,pwd,ph);
+        //获取设备唯一标识（因为后端需要1开头）
+        String devId = 1+ DeviceIdUtil.getDeviceId(this);
+        Observable<ResponseBody> observable = GetApiService().load(devId,pwd,ph);
         observable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ResponseBody>() {

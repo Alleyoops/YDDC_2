@@ -2,8 +2,10 @@ package com.example.yddc_2.utils;
 
 import android.annotation.SuppressLint;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 @SuppressLint("SimpleDateFormat")
 public class DateUtil {
@@ -38,6 +40,18 @@ public class DateUtil {
                     +Integer.parseInt(t[1])*60
                     +Integer.parseInt(t[2]);
         return ret;
+    }
+
+    //时间戳转换成年月日
+    public static String transForDateNYR(Long ms) throws ParseException {
+        if(ms==null){
+            ms=0L;
+        }
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy/MM/dd");
+        String temp=null;
+        String str=sdf.format(ms);
+        temp=sdf.format(Objects.requireNonNull(sdf.parse(str)));
+        return temp;
     }
 
 }

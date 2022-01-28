@@ -37,6 +37,7 @@ import com.example.yddc_2.navigation.find.SecondFragment;
 import com.example.yddc_2.navigation.me.ThirdFragment;
 import com.example.yddc_2.navigation.word.FirstFragment;
 import com.example.yddc_2.utils.DateUtil;
+import com.example.yddc_2.utils.DeviceIdUtil;
 import com.example.yddc_2.utils.GetNetService;
 import com.example.yddc_2.utils.GetRandomNum;
 import com.example.yddc_2.utils.HideBar;
@@ -392,7 +393,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
         //收藏模式的spell颜色为黄色，嘻嘻嘻
         TextView spell = (TextView)findViewById(R.id.spell);
         spell.setTextColor(getResources().getColor(R.color.item));
-        Log.d("MainActivity", "开始");
+        //Log.d("MainActivity", "开始");
         flag = 0;
         //获取tag（此处tag为3和4，即错三次自动收藏的和手动收藏的）
         Integer[] tags = {3,4};//3:三次全错；4:手动收藏
@@ -1025,7 +1026,7 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
 
                     @Override
                     public void onError(Throwable e) {
-                        Toast.makeText(MainActivity.this, "summit onError", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "commit onError", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

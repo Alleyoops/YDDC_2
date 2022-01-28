@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.yddc_2.R;
 import com.example.yddc_2.bean.User;
 import com.example.yddc_2.myinterface.APIService;
+import com.example.yddc_2.utils.DateUtil;
 import com.example.yddc_2.utils.SecuritySP;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -32,7 +33,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.Timestamp;
+import java.text.ParseException;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,7 +69,7 @@ public class RecyclerView_1_Adapter extends RecyclerView.Adapter<RecyclerView_1_
 
 
     @Override
-    public void onBindViewHolder(@NonNull @NotNull RvViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull @NotNull RvViewHolder holder, @SuppressLint("RecyclerView") int position) {
         holder.tv.setText(strings[position]);
         try {
             setUserInfo(context,holder,position);
@@ -191,10 +195,9 @@ public class RecyclerView_1_Adapter extends RecyclerView.Adapter<RecyclerView_1_
                             public void onClick(View v) {
                                 NumPicker_update(picker1,picker2,holder,str1,str2);
                             }
-                        });Log.d("RecyclerView_1_Adapter", "tt");
+                        });
                         break;
                     case 4://生日
-                        Log.d("RecyclerView_1_Adapter", "t");
                         //获取日历的一个实例，里面包含了当前的年月日
                         Calendar calendar = Calendar.getInstance();
                         //构建一个日期对话框，该对话框已经集成了日期选择器
@@ -202,7 +205,10 @@ public class RecyclerView_1_Adapter extends RecyclerView.Adapter<RecyclerView_1_
                         DatePickerDialog dialog=new DatePickerDialog(v.getContext(), new DatePickerDialog.OnDateSetListener() {
                             @Override
                             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                                String str = year +"."+month+"."+ dayOfMonth;
+                                //把选择的日期上传
+                                month+=1;//月份有点特殊
+                                String str = year+"/"+month+"/"+dayOfMonth;
+                                //Log.d("RecyclerView_1_Adapter", str);
                                 try {
                                     Map<String,String> map = new HashMap<>();
                                     map.put("birth",str);
@@ -211,10 +217,7 @@ public class RecyclerView_1_Adapter extends RecyclerView.Adapter<RecyclerView_1_
                                     e.printStackTrace();
                                 }
                             }
-                        },
-                                calendar.get(Calendar.YEAR),
-                                calendar.get(Calendar.MONTH),
-                                calendar.get(Calendar.DAY_OF_MONTH));
+                        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
                         //把日期对话框显示在界面上
                         dialog.show();
                         break;
@@ -248,6 +251,7 @@ public class RecyclerView_1_Adapter extends RecyclerView.Adapter<RecyclerView_1_
     }
 
     private void update(Map<String,String> info,RvViewHolder holder) throws GeneralSecurityException, IOException {
+        Log.d("RecyclerView_1_Adapter", info.get(info.keySet().iterator().next()));
         //上传修改后的用户信息
         Observable<ResponseBody> observable = GetApiService().update(SecuritySP.DecryptSP(context,"token"),info);
         observable.subscribeOn(Schedulers.io())
@@ -271,7 +275,8 @@ public class RecyclerView_1_Adapter extends RecyclerView.Adapter<RecyclerView_1_
                             {
                                 Toast.makeText(context, "修改成功", Toast.LENGTH_SHORT).show();
                                 //把修改后的信息显示到页面
-                                holder.tvDetail.setText(info.get(info.keySet().iterator().next()));
+                                String value = info.get(info.keySet().iterator().next());
+                                holder.tvDetail.setText(value);
                             }
                             else Toast.makeText(context, "state:" + state, Toast.LENGTH_SHORT).show();
                         } catch (IOException e) {
@@ -339,10 +344,12 @@ public class RecyclerView_1_Adapter extends RecyclerView.Adapter<RecyclerView_1_
                             {
                                 user = gson.fromJson(jsonObject.get("data").toString(),User.class);
                             }
-
+                            //把user的birth时间戳改为年月日字符串
+                            String birth = user.getBirth();
+                            user.setBirth(DateUtil.transForDateNYR(Long.parseLong(birth)));
                             strDetail= new String[]{user.getName(),user.getDesc(),user.getEmail(),user.getGrade(),user.getBirth()};
                             holder.tvDetail.setText(strDetail[position]);
-                        } catch (IOException e) {
+                        } catch (IOException | ParseException e) {
                             e.printStackTrace();
                         }
                     }
