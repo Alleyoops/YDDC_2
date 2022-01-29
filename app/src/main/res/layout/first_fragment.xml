@@ -250,13 +250,14 @@
                         android:textStyle="bold"
                         android:gravity="center"
                         android:text="35个" />
+
                     <TextView
                         android:id="@+id/tv4"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/tv3"
-                        app:drawableStartCompat="@drawable/ic_dot_10"
-                        android:text=" 比上一周效率变化：" />
+                        android:text=" 比上一周效率变化："
+                        app:drawableStartCompat="@drawable/ic_dot_10" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="20dp"

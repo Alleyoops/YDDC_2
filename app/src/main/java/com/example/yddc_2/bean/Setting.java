@@ -4,6 +4,13 @@ import java.io.Serializable;
 
 public class Setting {
     private Integer state;
+
+    public Setting(Integer state, String message, DataDTO data) {
+        this.state = state;
+        this.message = message;
+        this.data = data;
+    }
+
     private String message;
     private DataDTO data;
 
@@ -41,6 +48,18 @@ public class Setting {
         private Integer numOfList;
         private Integer circWay;
         private String uid;
+
+        public DataDTO(String id, String tag, Integer phoRem, Integer watRem, Integer dayTime, Integer list, Integer numOfList, Integer circWay, String uid) {
+            this.id = id;
+            this.tag = tag;
+            this.phoRem = phoRem;
+            this.watRem = watRem;
+            this.dayTime = dayTime;
+            this.list = list;
+            this.numOfList = numOfList;
+            this.circWay = circWay;
+            this.uid = uid;
+        }
 
         public String getId() {
             return id;

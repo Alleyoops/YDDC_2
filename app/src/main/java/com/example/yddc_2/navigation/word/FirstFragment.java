@@ -283,6 +283,12 @@ public class FirstFragment extends Fragment {
     private void updateSetting(Setting set,int list,int nol,int days) throws GeneralSecurityException, IOException {
         String token = SecuritySP.DecryptSP(getContext(),"token");
         Map<String,Object> settingMap = new HashMap<>();
+        if (set==null)
+        {
+            //给个默认初始值，防止闪退
+            Setting.DataDTO dataDTO = new Setting.DataDTO("0","0",0,0,0,5,10,0,"null");
+            set = new Setting(0,"null",dataDTO);
+        }
         settingMap.put("tag",set.getData().getTag());
         settingMap.put("watRem",set.getData().getWatRem());
         settingMap.put("phoRem",set.getData().getPhoRem());
@@ -311,10 +317,10 @@ public class FirstFragment extends Fragment {
                             int state = jsonObject.get("state").getAsInt();
                             if (state==200)
                             {
-                                //一个小技巧，把时间改为不同步，再刷新MainActivity，达到刷新单词列表的目的
-                                Calendar calendar = Calendar.getInstance();
-                                int dayOfWord = calendar.get(Calendar.DAY_OF_MONTH);
-                                SecuritySP.EncryptSP(getContext(),"day",String.valueOf(dayOfWord-1));
+//                                //暂时无用
+//                                Calendar calendar = Calendar.getInstance();
+//                                int dayOfWord = calendar.get(Calendar.DAY_OF_MONTH);
+//                                SecuritySP.EncryptSP(getContext(),"day",String.valueOf(dayOfWord-1));
                                 Toast.makeText(getContext(), "提交成功", Toast.LENGTH_SHORT).show();
                                 //重新iniSetting和iniTodayWords
                                 initSettings();

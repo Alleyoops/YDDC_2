@@ -58,23 +58,21 @@ public class WelcomeActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        },1000);
+        },500);
     }
 
 
     public void setStatusBarTranslucent(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = activity.getWindow();
-            window.setNavigationBarColor(Color.BLACK);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            View decorView = window.getDecorView();
-            int option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-            decorView.setSystemUiVisibility(option);
-            //透明着色
-            window.setStatusBarColor(Color.TRANSPARENT);
-        }
+        Window window = activity.getWindow();
+        window.setNavigationBarColor(Color.BLACK);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        View decorView = window.getDecorView();
+        int option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        decorView.setSystemUiVisibility(option);
+        //透明着色
+        window.setStatusBarColor(Color.TRANSPARENT);
     }
 
         //申请权限

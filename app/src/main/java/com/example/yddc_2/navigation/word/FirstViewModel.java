@@ -56,7 +56,10 @@ public class FirstViewModel extends ViewModel {
 
                     @Override
                     public void onNext(Setting setting) {
-                        if(setting.getState()!=200) Toast.makeText(context, setting.getState().toString(), Toast.LENGTH_SHORT).show();
+                        if(setting.getState()!=200)
+                        {
+                            Toast.makeText(context, setting.getState().toString(), Toast.LENGTH_SHORT).show();
+                        }
                         else mSetting.setValue(setting);
                     }
                 });

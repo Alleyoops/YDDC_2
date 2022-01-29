@@ -39,6 +39,7 @@ import com.example.yddc_2.utils.BitmapUtil;
 import com.example.yddc_2.utils.GetNetService;
 import com.example.yddc_2.utils.GlideEngine;
 import com.example.yddc_2.utils.MyHandler;
+import com.example.yddc_2.utils.NetUtil;
 import com.example.yddc_2.utils.PressAnimUtil;
 import com.example.yddc_2.utils.SecuritySP;
 import com.google.gson.Gson;
@@ -126,6 +127,12 @@ public class ThirdFragment extends Fragment{
         viewModel.getmSetting(getContext()).observe(getViewLifecycleOwner(), new Observer<Setting>() {
             @Override
             public void onChanged(Setting setting) {
+                if (setting==null)
+                {
+                    //给个初始值，防止闪退
+                    Setting.DataDTO dataDTO = new Setting.DataDTO("0","0",0,0,0,5,10,0,"null");
+                    setting = new Setting(0,"null",dataDTO);
+                }
                 tag = setting.getData().getTag();//我的词典
                 watch = setting.getData().getWatRem();
                 phone = setting.getData().getPhoRem();
@@ -204,6 +211,7 @@ public class ThirdFragment extends Fragment{
         spReciteWay.setOnSpinnerItemSelectedListener(new OnSpinnerItemSelectedListener() {
             @Override
             public void onItemSelected(NiceSpinner parent, View view, int position, long id) {
+                if (NetUtil.getNetWorkStart(requireContext())!=1) {
                 try {
                     //保存到本地
                     SecuritySP.EncryptSP(getContext(),"reciteWay",data2.get(position));
@@ -219,7 +227,7 @@ public class ThirdFragment extends Fragment{
                     e.printStackTrace();
                 }
                 Toast.makeText(requireActivity(), data2.get(position), Toast.LENGTH_SHORT).show();
-            }
+            }}
         });
     }
 

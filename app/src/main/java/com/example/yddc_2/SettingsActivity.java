@@ -1,18 +1,21 @@
 package com.example.yddc_2;
 
-import android.app.Activity;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
+import android.util.Log;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
+import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.example.yddc_2.utils.HideBar;
+import com.example.yddc_2.utils.SecuritySP;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -38,8 +41,28 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
+           Preference preference = (Preference) findPreference("exit");
+            assert preference != null;
+            preference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+               @Override
+               public boolean onPreferenceClick(Preference preference) {
+                   //清楚某些本地SharedPreference的xml文件内容
+                   try {
+                       SecuritySP.Remove(getContext(),"token");
+                       SecuritySP.Remove(getContext(),"ph");
+                       SecuritySP.Remove(getContext(),"pwd");
+                       SecuritySP.Remove(getContext(),"reciteWay");
+                       SecuritySP.Remove(getContext(),"setting");
+                   } catch (GeneralSecurityException | IOException e) {
+                       e.printStackTrace();
+                   }
+                   Toast.makeText(getContext(), "已清除所有账号数据", Toast.LENGTH_SHORT).show();
+                   return false;
+               }
+           });
         }
     }
+
     //使导航栏返回键可用
     private void back(){
         androidx.appcompat.widget.Toolbar toolbar = (androidx.appcompat.widget.Toolbar) findViewById(R.id.toolbar_result);
