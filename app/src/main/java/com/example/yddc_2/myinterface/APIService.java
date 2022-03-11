@@ -1,7 +1,9 @@
 package com.example.yddc_2.myinterface;
 
 
+import com.example.yddc_2.bean.DayPlan;
 import com.example.yddc_2.bean.DaySentence;
+import com.example.yddc_2.bean.ReciteRecord;
 import com.example.yddc_2.bean.Setting;
 import com.example.yddc_2.bean.WordList;
 
@@ -85,6 +87,13 @@ public interface APIService {
     @POST("user/postdata")//提交背诵数据
     Observable<ResponseBody> summitData(@Header("token") String token, @Body RequestBody data);
 
+    @POST("user/getrecord")//获取背诵数据
+    Call<ReciteRecord> getRecord(@Header("token") String token);
+
     @GET("word/queryAll")//查单词
     Observable<ResponseBody> queryWord(@QueryMap Map<String,Object> query);
+
+    @POST("user/getplan")//获取今日计划
+    Call<DayPlan> getPlan(@Header("token") String token);
+
 }

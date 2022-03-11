@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import com.example.yddc_2.R;
 import com.example.yddc_2.databinding.ActivityResultBinding;
@@ -41,6 +42,7 @@ public class ResultActivity extends AppCompatActivity {
     private void init(){
         Bundle bundle = this.getIntent().getBundleExtra("result");
         String query = bundle.getString("query");
+        binding.toolbarResult.setTitle("搜索结果："+query);
         Map<String,Object> map = new HashMap<>();
         map.put("q",query);
         GetNetService.GetApiService().queryWord(map)

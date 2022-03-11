@@ -74,7 +74,7 @@ public class SecondFragment extends Fragment implements OnBannerListener {
                 ImageView imageView = (ImageView)requireActivity().findViewById(R.id.dayView);
                 if (daySentence.getCode()!=200)
                 {
-                    textView.setText("深夜下班，祝你晚安！");
+                    textView.setText("今日接口请求次数已达上限");
                     imageView.setImageResource(R.drawable.img3);
                 }
                 else
@@ -128,7 +128,7 @@ public class SecondFragment extends Fragment implements OnBannerListener {
         //设置图片加载器
         mBanner.setImageLoader(mMyImageLoader);
         //设置轮播的动画效果,里面有很多种特效,可以都看看效果。
-        mBanner.setBannerAnimation(Transformer.Tablet);
+        mBanner.setBannerAnimation(Transformer.Default);
         //轮播图片的文字
         mBanner.setBannerTitles(imageTitle);
         //设置轮播间隔时间

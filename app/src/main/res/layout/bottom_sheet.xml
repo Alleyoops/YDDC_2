@@ -76,6 +76,7 @@
                             android:textSize="8sp" />
 
                         <TextView
+                            android:id="@+id/word_num"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"

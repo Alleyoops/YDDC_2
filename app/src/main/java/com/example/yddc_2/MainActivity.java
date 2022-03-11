@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
 import android.Manifest;
@@ -1041,6 +1042,11 @@ public class MainActivity extends AppCompatActivity implements  ActivityCompat.O
                         }
                     }
                 });
+        //刷新FirstFragment的ui显示
+        //这里实现的方法是用广播通知对方再次实行initSetting方法来刷新days
+        Intent intent = new Intent("initSetting");
+        intent.putExtra("change", "yes");//用来判断，可有可无
+        LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(intent);
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {

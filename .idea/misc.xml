@@ -5,11 +5,18 @@
       <map>
         <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/drawable/ic_arrow_up_24.xml" value="0.21944444444444444" />
         <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/drawable/ic_arrow_up_24_24.xml" value="0.21944444444444444" />
+        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/activity_main.xml" value="0.4036458333333333" />
+        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/activity_result.xml" value="0.3484375" />
         <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/activity_welcome.xml" value="0.25364583333333335" />
         <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/bottom_sheet.xml" value="0.264" />
         <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/first_fragment.xml" value="0.4" />
+        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/item_recyclerview1_layout.xml" value="0.4036458333333333" />
+        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/list_item.xml" value="0.4036458333333333" />
+        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/popupwindow.xml" value="0.24259259259259258" />
+        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/popupwindow_menu.xml" value="0.24259259259259258" />
         <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/settings_activity.xml" value="0.19270833333333334" />
-        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/third_fragment.xml" value="0.16" />
+        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/third_fragment.xml" value="0.536" />
+        <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/layout/word_list.xml" value="0.4036458333333333" />
         <entry key="..\:/AndroidStudioProjects/YDDC_2/app/src/main/res/xml/root_preferences.xml" value="0.264" />
       </map>
     </option>

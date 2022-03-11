@@ -54,4 +54,22 @@ public class DateUtil {
         return temp;
     }
 
+    //把秒数转换成时分秒的形式，如110s转换成1m50s,3681s转换成1h1m21s
+    public static String TransSecondsToHMS(int s){
+        String timeStr;
+        if (s<60){
+            timeStr = String.valueOf(s)+"s";
+        }
+        else if (s<3600){
+            timeStr = String.valueOf(s/60)+"m"+String.valueOf(s%60)+"s";
+        }
+        else {
+            int h = s/3600;
+            int m = (s-h*3600)/60;
+            int ss = s-h*3600-m*60;
+            timeStr = String.valueOf(h)+"h"+String.valueOf(m)+"m"+String.valueOf(ss)+"s";
+        }
+        return timeStr;
+    }
+
 }
